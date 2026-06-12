@@ -1,0 +1,399 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Geist+Mono:wght@300;400;500;600&display=swap');
+@import "tailwindcss";
+
+/* ══════════════════════════════════════════════════════════════════
+   NeuralFlow v2 — Premium Design System
+   Palette: Near-black canvas / Luminous cyan-purple / Warm ambers
+   Font: Plus Jakarta Sans (UI) + Geist Mono (terminal)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ─── Dark Theme ──────────────────────────────────────────────────── */
+:root,
+.dark {
+  /* Backgrounds — layered depth system */
+  --nf-bg-primary:    #030712;
+  --nf-bg-secondary:  #060d1e;
+  --nf-bg-surface:    rgba(10, 16, 32, 0.82);
+  --nf-bg-surface-hover: rgba(16, 24, 48, 0.9);
+  --nf-bg-input:      rgba(8, 14, 28, 0.85);
+  --nf-bg-sidebar:    rgba(4, 9, 20, 0.97);
+  --nf-bg-toolbar:    rgba(4, 9, 20, 0.97);
+  --nf-bg-terminal:   #020408;
+  --nf-bg-node:       rgba(8, 16, 36, 0.92);
+  --nf-bg-modal:      rgba(4, 9, 22, 0.96);
+
+  /* Borders */
+  --nf-border:        rgba(255, 255, 255, 0.07);
+  --nf-border-hover:  rgba(255, 255, 255, 0.14);
+  --nf-border-subtle: rgba(255, 255, 255, 0.025);
+  --nf-border-accent: rgba(34, 211, 238, 0.3);
+
+  /* Typography — strict hierarchy */
+  --nf-text-primary:   #f0f6ff;
+  --nf-text-secondary: #94a3b8;
+  --nf-text-muted:     #64748b;
+  --nf-text-dim:       #475569;
+  --nf-text-ghost:     #1e293b;
+
+  /* Accent palette — luminous, saturated */
+  --nf-accent-cyan:    #22d3ee;
+  --nf-accent-purple:  #c084fc;
+  --nf-accent-yellow:  #fbbf24;
+  --nf-accent-emerald: #34d399;
+  --nf-accent-red:     #f87171;
+  --nf-accent-amber:   #f59e0b;
+  --nf-accent-blue:    #60a5fa;
+  --nf-accent-pink:    #f472b6;
+
+  /* Glow values */
+  --nf-glow-cyan:    rgba(34, 211, 238, 0.25);
+  --nf-glow-purple:  rgba(192, 132, 252, 0.25);
+  --nf-glow-yellow:  rgba(251, 191, 36, 0.25);
+  --nf-glow-emerald: rgba(52, 211, 153, 0.20);
+  --nf-glow-red:     rgba(248, 113, 113, 0.25);
+
+  /* Node system */
+  --nf-node-bg:       rgba(8, 16, 36, 0.92);
+  --nf-node-header:   linear-gradient(145deg, rgba(12,22,50,0.96) 0%, rgba(8,16,36,0.9) 100%);
+  --nf-node-shadow:   0 4px 6px -1px rgba(0,0,0,0.5), 0 2px 4px -2px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04) inset;
+  --nf-node-shadow-selected: 0 0 0 2px var(--nf-accent-cyan), 0 0 40px -8px var(--nf-glow-cyan), 0 20px 60px -12px rgba(0,0,0,0.6);
+
+  /* Canvas */
+  --nf-canvas-line: rgba(34, 211, 238, 0.04);
+  --nf-canvas-dot:  rgba(255, 255, 255, 0.035);
+  --nf-edge-color:  rgba(148, 163, 184, 0.18);
+  --nf-edge-active: #22d3ee;
+  --nf-edge-glow:   rgba(34, 211, 238, 0.4);
+  --nf-minimap-mask: rgba(2, 4, 8, 0.82);
+  --nf-minimap-bg:  rgba(4, 9, 20, 0.96);
+
+  /* Scrollbar */
+  --nf-scrollbar-thumb: rgba(255, 255, 255, 0.06);
+  --nf-scrollbar-hover: rgba(255, 255, 255, 0.12);
+
+  /* Interaction */
+  --nf-selection-bg: rgba(34, 211, 238, 0.15);
+  --nf-focus-ring:   rgba(34, 211, 238, 0.5);
+
+  /* Gradients */
+  --nf-gradient-deploy: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+  --nf-gradient-logo: linear-gradient(135deg, #22d3ee 0%, #c084fc 50%, #f472b6 100%);
+  
+  --nf-gradient-node-trigger:    linear-gradient(135deg, rgba(251,191,36,0.12) 0%, transparent 100%);
+  --nf-gradient-node-agent:      linear-gradient(135deg, rgba(34,211,238,0.12) 0%, transparent 100%);
+  --nf-gradient-node-action:     linear-gradient(135deg, rgba(192,132,252,0.12) 0%, transparent 100%);
+  
+  --nf-gradient-node-email:      linear-gradient(135deg, rgba(251,146,60,0.15) 0%, transparent 100%); /* Orange */
+  --nf-gradient-node-webhook:    linear-gradient(135deg, rgba(74,222,128,0.15) 0%, transparent 100%); /* Green */
+  --nf-gradient-node-browser:    linear-gradient(135deg, rgba(56,189,248,0.15) 0%, transparent 100%); /* Sky Blue */
+  --nf-gradient-node-memory_st:  linear-gradient(135deg, rgba(45,212,191,0.15) 0%, transparent 100%); /* Teal */
+  --nf-gradient-node-memory_qy:  linear-gradient(135deg, rgba(129,140,248,0.15) 0%, transparent 100%); /* Indigo */
+  --nf-gradient-node-subprocess: linear-gradient(135deg, rgba(248,113,113,0.15) 0%, transparent 100%); /* Red */
+  --nf-gradient-node-cron:       linear-gradient(135deg, rgba(167,139,250,0.15) 0%, transparent 100%); /* Purple */
+  --nf-gradient-node-clipboard:  linear-gradient(135deg, rgba(244,114,182,0.15) 0%, transparent 100%); /* Pink */
+
+  color-scheme: dark;
+}
+
+/* ─── Light Theme ─────────────────────────────────────────────────── */
+.light {
+  --nf-bg-primary:    #f8fafc;
+  --nf-bg-secondary:  #f1f5f9;
+  --nf-bg-surface:    rgba(255, 255, 255, 0.92);
+  --nf-bg-surface-hover: rgba(248, 250, 252, 0.97);
+  --nf-bg-input:      rgba(248, 250, 252, 0.85);
+  --nf-bg-sidebar:    rgba(241, 245, 249, 0.98);
+  --nf-bg-toolbar:    rgba(241, 245, 249, 0.98);
+  --nf-bg-terminal:   #0f172a;
+  --nf-bg-node:       rgba(255, 255, 255, 0.97);
+  --nf-bg-modal:      rgba(255, 255, 255, 0.98);
+
+  --nf-border:        rgba(15, 23, 42, 0.1);
+  --nf-border-hover:  rgba(15, 23, 42, 0.18);
+  --nf-border-subtle: rgba(15, 23, 42, 0.05);
+  --nf-border-accent: rgba(14, 165, 233, 0.4);
+
+  --nf-text-primary:   #0f172a;
+  --nf-text-secondary: #334155;
+  --nf-text-muted:     #64748b;
+  --nf-text-dim:       #94a3b8;
+  --nf-text-ghost:     #cbd5e1;
+
+  --nf-accent-cyan:    #0891b2;
+  --nf-accent-purple:  #7c3aed;
+  --nf-accent-yellow:  #d97706;
+  --nf-accent-emerald: #059669;
+  --nf-accent-red:     #dc2626;
+  --nf-accent-amber:   #b45309;
+  --nf-accent-blue:    #2563eb;
+  --nf-accent-pink:    #db2777;
+
+  --nf-glow-cyan:    rgba(8, 145, 178, 0.2);
+  --nf-glow-purple:  rgba(124, 58, 237, 0.2);
+  --nf-glow-yellow:  rgba(217, 119, 6, 0.15);
+  --nf-glow-emerald: rgba(5, 150, 105, 0.15);
+  --nf-glow-red:     rgba(220, 38, 38, 0.2);
+
+  --nf-node-bg:       rgba(255, 255, 255, 0.97);
+  --nf-node-header:   linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
+  --nf-node-shadow:   0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.06);
+  --nf-node-shadow-selected: 0 0 0 2px var(--nf-accent-cyan), 0 0 30px -4px var(--nf-glow-cyan);
+
+  --nf-canvas-line: rgba(14, 165, 233, 0.06);
+  --nf-canvas-dot:  rgba(15, 23, 42, 0.06);
+  --nf-edge-color:  rgba(100, 116, 139, 0.3);
+  --nf-edge-active: #0891b2;
+  --nf-edge-glow:   rgba(8, 145, 178, 0.35);
+  --nf-minimap-mask: rgba(248, 250, 252, 0.65);
+  --nf-minimap-bg:  rgba(241, 245, 249, 0.97);
+
+  --nf-scrollbar-thumb: rgba(15, 23, 42, 0.1);
+  --nf-scrollbar-hover: rgba(15, 23, 42, 0.18);
+
+  --nf-selection-bg: rgba(8, 145, 178, 0.15);
+  --nf-focus-ring:   rgba(8, 145, 178, 0.5);
+
+  --nf-gradient-deploy: linear-gradient(135deg, #0891b2 0%, #4f46e5 100%);
+  --nf-gradient-logo: linear-gradient(135deg, #0891b2 0%, #7c3aed 100%);
+  
+  --nf-gradient-node-trigger:    linear-gradient(135deg, rgba(217,119,6,0.07) 0%, transparent 100%);
+  --nf-gradient-node-agent:      linear-gradient(135deg, rgba(8,145,178,0.07) 0%, transparent 100%);
+  --nf-gradient-node-action:     linear-gradient(135deg, rgba(124,58,237,0.07) 0%, transparent 100%);
+  
+  --nf-gradient-node-email:      linear-gradient(135deg, rgba(234,88,12,0.09) 0%, transparent 100%);
+  --nf-gradient-node-webhook:    linear-gradient(135deg, rgba(22,163,74,0.09) 0%, transparent 100%);
+  --nf-gradient-node-browser:    linear-gradient(135deg, rgba(2,132,199,0.09) 0%, transparent 100%);
+  --nf-gradient-node-memory_st:  linear-gradient(135deg, rgba(13,148,136,0.09) 0%, transparent 100%);
+  --nf-gradient-node-memory_qy:  linear-gradient(135deg, rgba(79,70,229,0.09) 0%, transparent 100%);
+  --nf-gradient-node-subprocess: linear-gradient(135deg, rgba(220,38,38,0.09) 0%, transparent 100%);
+  --nf-gradient-node-cron:       linear-gradient(135deg, rgba(147,51,234,0.09) 0%, transparent 100%);
+  --nf-gradient-node-clipboard:  linear-gradient(135deg, rgba(219,39,119,0.09) 0%, transparent 100%);
+
+  color-scheme: light;
+}
+
+/* ─── Typography ──────────────────────────────────────────────────── */
+:root {
+  --font-heading: 'Impact', 'Arial Black', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+}
+
+/* ─── Base ────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--nf-bg-primary);
+  color: var(--nf-text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  overflow: hidden;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* ─── React Flow Canvas ───────────────────────────────────────────── */
+.neuralflow-canvas .react-flow__pane { cursor: grab; }
+.neuralflow-canvas .react-flow__pane:active { cursor: grabbing; }
+
+.neuralflow-canvas .react-flow__edge-path {
+  stroke: var(--nf-edge-color);
+  stroke-width: 1.75;
+  transition: stroke 0.2s, stroke-width 0.2s;
+}
+.neuralflow-canvas .react-flow__edge.selected .react-flow__edge-path,
+.neuralflow-canvas .react-flow__edge:hover .react-flow__edge-path {
+  stroke: var(--nf-edge-active);
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 6px var(--nf-edge-glow));
+}
+
+.neuralflow-canvas .react-flow__connection-line {
+  stroke: var(--nf-edge-active);
+  stroke-width: 2;
+  stroke-dasharray: 6 3;
+  filter: drop-shadow(0 0 4px var(--nf-edge-glow));
+}
+
+.neuralflow-canvas .react-flow__handle {
+  transition: all 0.15s ease;
+  width: 12px;
+  height: 12px;
+}
+/* Extended hit area for easier connecting */
+.neuralflow-canvas .react-flow__handle::after {
+  content: "";
+  position: absolute;
+  top: -14px;
+  left: -14px;
+  right: -14px;
+  bottom: -14px;
+  background: transparent;
+}
+.neuralflow-canvas .react-flow__handle:hover {
+  transform: scale(1.5);
+  filter: drop-shadow(0 0 6px currentColor);
+}
+
+.neuralflow-canvas .react-flow__node.selected {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.neuralflow-canvas .react-flow__attribution { display: none; }
+
+.neuralflow-canvas .react-flow__controls {
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4) !important;
+  border-radius: 10px !important;
+  overflow: hidden;
+  border: 1px solid var(--nf-border) !important;
+}
+.neuralflow-canvas .react-flow__controls-button {
+  border: none !important;
+  background: var(--nf-bg-sidebar) !important;
+  color: var(--nf-text-muted) !important;
+  border-bottom: 1px solid var(--nf-border) !important;
+  width: 28px !important;
+  height: 28px !important;
+  transition: background 0.15s, color 0.15s !important;
+}
+.neuralflow-canvas .react-flow__controls-button:hover {
+  background: var(--nf-bg-surface-hover) !important;
+  color: var(--nf-text-primary) !important;
+}
+.neuralflow-canvas .react-flow__controls-button:last-child {
+  border-bottom: none !important;
+}
+.neuralflow-canvas .react-flow__controls-button svg {
+  max-width: 12px;
+  max-height: 12px;
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--nf-scrollbar-thumb); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--nf-scrollbar-hover); }
+
+/* ─── Glassmorphism ───────────────────────────────────────────────── */
+.glass {
+  background: var(--nf-bg-surface);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--nf-border);
+}
+.glass-hover { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.glass-hover:hover {
+  background: var(--nf-bg-surface-hover);
+  border-color: var(--nf-border-hover);
+  transform: translateY(-1px);
+}
+
+/* ─── Node Typography ─────────────────────────────────────────────── */
+.base-node { font-family: var(--font-sans); }
+.base-node .node-header-text { font-family: var(--font-heading); letter-spacing: 0.05em; font-weight: normal; }
+
+.base-node input,
+.base-node select,
+.base-node textarea,
+.base-node button { font-family: var(--font-mono); }
+
+.base-node textarea,
+.terminal-content { font-family: var(--font-mono); }
+
+/* ─── Shared Input ────────────────────────────────────────────────── */
+.nf-input {
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  background: var(--nf-bg-input);
+  border: 1px solid var(--nf-border);
+  color: var(--nf-text-primary);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+.nf-input:focus {
+  border-color: var(--nf-border-accent);
+  box-shadow: 0 0 0 3px var(--nf-glow-cyan);
+}
+.nf-input::placeholder { color: var(--nf-text-dim); }
+
+.nf-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--nf-text-muted);
+  margin-bottom: 5px;
+}
+
+/* ─── Permission Modal ────────────────────────────────────────────── */
+.permission-backdrop {
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+}
+
+/* ─── Animations ──────────────────────────────────────────────────── */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+.animate-blink { animation: blink 1s step-end infinite; }
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+.animate-glow { animation: glow-pulse 2s ease-in-out infinite; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.animate-float { animation: float 3s ease-in-out infinite; }
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up { animation: slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in { animation: fade-in 0.2s ease forwards; }
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ─── Selection ───────────────────────────────────────────────────── */
+::selection { background: var(--nf-selection-bg); color: var(--nf-text-primary); }
+
+/* ─── Focus ───────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 1.5px solid var(--nf-focus-ring);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ─── Theme Transition ────────────────────────────────────────────── */
+.theme-transition,
+.theme-transition * {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease !important;
+}
+
+/* ─── Utility ─────────────────────────────────────────────────────── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
