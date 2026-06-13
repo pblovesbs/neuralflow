@@ -13,11 +13,11 @@ import email
 import imaplib
 import re
 from datetime import datetime, timezone
-from typing import Optional
 
 
 class EmailConfig:
     """Configuration for an IMAP polling session."""
+
     def __init__(
         self,
         imap_server: str,
@@ -43,7 +43,9 @@ def _extract_plain_text(msg: email.message.Message) -> str:
             if ct == "text/plain" and "attachment" not in disp:
                 try:
                     charset = part.get_content_charset() or "utf-8"
-                    body = part.get_payload(decode=True).decode(charset, errors="replace")
+                    body = part.get_payload(decode=True).decode(
+                        charset, errors="replace"
+                    )
                     break
                 except Exception:
                     continue
@@ -99,13 +101,15 @@ def fetch_unread_emails(config: EmailConfig) -> list[dict]:
                 # Mark as Seen immediately
                 mail.store(msg_id, "+FLAGS", "\\Seen")
 
-                results.append({
-                    "source": "email",
-                    "sender": sender,
-                    "subject": subject,
-                    "body": body,
-                    "received_at": datetime.now(timezone.utc).isoformat(),
-                })
+                results.append(
+                    {
+                        "source": "email",
+                        "sender": sender,
+                        "subject": subject,
+                        "body": body,
+                        "received_at": datetime.now(timezone.utc).isoformat(),
+                    }
+                )
             except Exception:
                 continue
 

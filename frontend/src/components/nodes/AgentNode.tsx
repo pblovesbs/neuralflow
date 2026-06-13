@@ -163,7 +163,7 @@ export default function AgentNode({ id, data, selected }: NodeProps) {
   const selectedModelMeta = nodeData.model ? findModel(nodeData.model) : null;
   const isInstalled = nodeData.model ? installedModels.includes(nodeData.model) : false;
 
-  const inputStyle = { background: 'var(--nf-bg-input)', border: '1px solid var(--nf-border)', color: 'var(--nf-text-primary)' };
+
 
   const pendingMeta = findModel(pendingModelId);
 
@@ -197,7 +197,7 @@ export default function AgentNode({ id, data, selected }: NodeProps) {
               title="How AI Processing Works" 
               description={
                 <>
-                  <p>This node acts as the "Brain" of your automation.</p>
+                  <p>This node acts as the &quot;Brain&quot; of your automation.</p>
                   <p className="mt-1">1. <b>100% Local:</b> NeuralFlow downloads the open-source LLM you select to your machine. The data never leaves your computer.</p>
                   <p className="mt-1">2. <b>Input:</b> It reads the data sent from the previous node (e.g., an Email or File).</p>
                   <p className="mt-1">3. <b>Processing:</b> Using your custom prompt, it processes the data using your GPU/CPU.</p>
@@ -462,6 +462,53 @@ export default function AgentNode({ id, data, selected }: NodeProps) {
                       className="nf-input"
                     />
                   </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="nf-label flex justify-between">
+                      <span>Keep Alive (mins)</span>
+                      <InfoTooltip title="VRAM Cache" description="How long the model stays hot in VRAM after finishing. 0 = unload immediately." />
+                    </label>
+                    <input
+                      type="number"
+                      step="1"
+                      min="0"
+                      max="60"
+                      placeholder="e.g. 5"
+                      value={nodeData.keep_alive ?? 5}
+                      onChange={e => updateNodeData(id, { keep_alive: parseInt(e.target.value) })}
+                      className="nf-input"
+                    />
+                  </div>
+                  <div>
+                    <label className="nf-label">Quantization</label>
+                    <select
+                      value={nodeData.quantization ?? 'q4_K_M'}
+                      onChange={e => updateNodeData(id, { quantization: e.target.value })}
+                      className="nf-input"
+                    >
+                      <option value="q4_K_M">Q4_K_M (Default)</option>
+                      <option value="q8_0">Q8_0 (High Quality)</option>
+                      <option value="fp16">FP16 (Uncompressed)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="nf-label flex justify-between">
+                    <span>Context Window Limits</span>
+                    <span className="text-[9px] text-neutral-500">{nodeData.num_ctx ?? 4096} tokens</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="2048"
+                    max="32768"
+                    step="1024"
+                    value={nodeData.num_ctx ?? 4096}
+                    onChange={e => updateNodeData(id, { num_ctx: parseInt(e.target.value) })}
+                    className="w-full mt-2 accent-cyan-400"
+                  />
                 </div>
                 
                 <div>

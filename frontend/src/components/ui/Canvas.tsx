@@ -107,7 +107,7 @@ export default function Canvas() {
         onConnect={onConnect}
         onDragOver={onDragOver}
         onDrop={onDrop}
-        nodeTypes={nodeTypes as any}
+        nodeTypes={nodeTypes as Record<string, React.ComponentType<unknown>>}
         defaultEdgeOptions={defaultEdgeOptions}
         fitView
         fitViewOptions={{ padding: 0.25, maxZoom: 1 }}

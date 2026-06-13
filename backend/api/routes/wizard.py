@@ -12,9 +12,16 @@ from core.use_case_templates import generate_use_case_dag
 
 router = APIRouter()
 
+
 class WizardRequest(BaseModel):
-    use_case_id: str = Field(..., description="ID of the selected use case (e.g. 'summarize')")
-    config: Dict[str, Any] = Field(..., description="Configuration values for the use case (source_path, model, etc.)")
+    use_case_id: str = Field(
+        ..., description="ID of the selected use case (e.g. 'summarize')"
+    )
+    config: Dict[str, Any] = Field(
+        ...,
+        description="Configuration values for the use case (source_path, model, etc.)",
+    )
+
 
 @router.post("/build-dag", response_model=DagWorkflow)
 async def build_dag(req: WizardRequest):

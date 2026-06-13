@@ -5,7 +5,7 @@ import type { FlowNode, DagNodeData } from '@/types/dag';
 
 export default function CronTriggerNode({ id, data, selected }: FlowNode) {
   const { updateNodeData } = useReactFlow();
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  // showAdvanced unused
 
   const updateField = (field: keyof DagNodeData, value: string | number | boolean | null) => {
     updateNodeData(id, { [field]: value });

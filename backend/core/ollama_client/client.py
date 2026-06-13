@@ -13,11 +13,13 @@ import httpx
 
 class OllamaConnectionError(Exception):
     """Raised when unable to connect to the Ollama server."""
+
     pass
 
 
 class ModelNotFoundError(Exception):
     """Raised when the requested model is not available."""
+
     pass
 
 
@@ -84,6 +86,7 @@ class OllamaClient:
         stream: bool = True,
         num_ctx: int = 4096,
         options: dict = None,
+        keep_alive: str | int | float = "5m",
     ) -> AsyncGenerator[str, None]:
         """
         Generate a response from the Ollama model, streaming chunks.
@@ -92,18 +95,20 @@ class OllamaClient:
             model: Model name (e.g., 'llama3', 'mistral').
             prompt: The prompt to send.
             stream: Whether to stream the response.
+            keep_alive: How long to keep the model loaded in memory. 0 = unload immediately.
 
         Yields:
             Response text chunks as they arrive.
         """
         opts = options or {}
         opts["num_ctx"] = num_ctx
-        
+
         payload = {
             "model": model,
             "prompt": prompt,
             "stream": stream,
             "options": opts,
+            "keep_alive": keep_alive,
         }
 
         try:

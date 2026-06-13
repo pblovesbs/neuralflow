@@ -9,7 +9,6 @@ Falls back to a descriptive error string for unsupported formats so the workflow
 from __future__ import annotations
 
 import csv
-import io
 import os
 
 
@@ -112,5 +111,7 @@ def _read_csv(path: str) -> str:
     lines = [",".join(row) for row in sample]
     result = "\n".join(lines)
     if truncated:
-        result += f"\n\n[... truncated at {max_rows} rows. Full file has {len(rows)} rows.]"
+        result += (
+            f"\n\n[... truncated at {max_rows} rows. Full file has {len(rows)} rows.]"
+        )
     return result

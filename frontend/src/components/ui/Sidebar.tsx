@@ -15,12 +15,12 @@ interface NodePaletteItemProps {
   label: string;
   icon: string;
   description: string;
-  hint: string;
+  hint?: string;
   accentRaw: string;
   step?: string;
 }
 
-function NodePaletteItem({ type, label, icon, description, hint, accentRaw, step }: NodePaletteItemProps) {
+function NodePaletteItem({ type, label, icon, description, accentRaw, step }: NodePaletteItemProps) {
   const onDragStart = (event: React.DragEvent) => {
     event.dataTransfer.setData('application/neuralflow-node', type);
     event.dataTransfer.effectAllowed = 'move';

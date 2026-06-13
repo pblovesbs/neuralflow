@@ -30,11 +30,15 @@ function LogLine({ log }: { log: LogEntry }) {
   const level = log.level || 'INFO';
   const cfg = LEVEL_CONFIG[level] || LEVEL_CONFIG.INFO;
 
-  const time = log.timestamp
-    ? new Date(log.timestamp).toLocaleTimeString('en-US', {
+  let time = '--:--:--';
+  if (log.timestamp) {
+    const d = new Date(log.timestamp);
+    if (!isNaN(d.getTime())) {
+      time = d.toLocaleTimeString('en-US', {
         hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit',
-      })
-    : '--:--:--';
+      });
+    }
+  }
 
   const label = humanizeNodeId(log.node_id || 'system');
 

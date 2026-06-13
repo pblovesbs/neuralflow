@@ -42,6 +42,7 @@ async def lifespan(app: FastAPI):
     try:
         import httpx
         from api.routes.websocket import manager as ws_manager
+
         async with httpx.AsyncClient(timeout=3.0) as client:
             resp = await client.get("http://127.0.0.1:11434/api/tags")
             if resp.status_code != 200:
@@ -50,9 +51,11 @@ async def lifespan(app: FastAPI):
     except Exception:
         print("   ⚠️  Ollama is unreachable — frontend will be notified")
         import asyncio
+
         async def _notify_offline():
             await asyncio.sleep(2)  # Wait for WS clients to connect
             await ws_manager.broadcast('{"type": "ollama_offline"}')
+
         asyncio.create_task(_notify_offline())
 
     # Start Background Tasks
@@ -87,6 +90,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
     ],
     allow_credentials=True,
     allow_methods=["*"],

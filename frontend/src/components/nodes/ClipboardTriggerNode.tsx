@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Handle, Position, useReactFlow } from '@xyflow/react';
 import BaseNode from './BaseNode';
 import type { FlowNode, DagNodeData } from '@/types/dag';

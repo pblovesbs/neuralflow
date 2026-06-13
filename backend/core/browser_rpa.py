@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 _PLAYWRIGHT_AVAILABLE = False
 try:
     from playwright.async_api import async_playwright
+
     _PLAYWRIGHT_AVAILABLE = True
 except ImportError:
     pass
@@ -116,6 +117,7 @@ async def scrape_url(
 
                 # Clean up excessive whitespace
                 import re
+
                 body_text = re.sub(r"\n{3,}", "\n\n", body_text)
                 body_text = re.sub(r" {2,}", " ", body_text)
                 body_text = body_text.strip()[:16_000]  # Cap at 16K chars

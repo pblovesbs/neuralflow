@@ -16,7 +16,7 @@ export default function StandardHeader() {
     setMode('builder');
     router.push('/builder');
   };
-  const handleTryItNow = (prefilled: DemoConfig['prefilledWizard']) => {
+  const handleTryItNow = (_prefilled: DemoConfig['prefilledWizard']) => {
     setShowDemo(false);
     // In a real implementation, we'd pass this via context/store to prefill StandardPage.
     // For now, we just close the modal.

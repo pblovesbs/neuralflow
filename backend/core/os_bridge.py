@@ -10,7 +10,6 @@ to allow easy extension to Windows/Linux later.
 
 from __future__ import annotations
 
-import platform
 import subprocess
 import sys
 from datetime import datetime
@@ -104,6 +103,7 @@ def add_calendar_event(
 
     if end_date is None:
         from datetime import timedelta
+
         end_date = start_date + timedelta(hours=1)
 
     def _fmt(dt: datetime) -> str:

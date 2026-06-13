@@ -32,7 +32,7 @@ def is_ollama_installed() -> bool:
 async def auto_start_ollama() -> dict:
     """
     Automatically start Ollama if it's installed but not running.
-    
+
     Returns a status dict:
       - status: 'running' | 'started' | 'not_installed' | 'failed'
       - message: Human-readable explanation
@@ -66,7 +66,7 @@ async def auto_start_ollama() -> dict:
             if await is_ollama_running():
                 return {
                     "status": "started",
-                    "message": f"Ollama started automatically (took {(i+1)*0.5:.1f}s).",
+                    "message": f"Ollama started automatically (took {(i + 1) * 0.5:.1f}s).",
                 }
 
         return {

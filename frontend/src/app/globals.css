@@ -97,27 +97,27 @@
 
 /* ─── Light Theme ─────────────────────────────────────────────────── */
 .light {
-  --nf-bg-primary:    #f8fafc;
-  --nf-bg-secondary:  #f1f5f9;
-  --nf-bg-surface:    rgba(255, 255, 255, 0.92);
-  --nf-bg-surface-hover: rgba(248, 250, 252, 0.97);
-  --nf-bg-input:      rgba(248, 250, 252, 0.85);
-  --nf-bg-sidebar:    rgba(241, 245, 249, 0.98);
-  --nf-bg-toolbar:    rgba(241, 245, 249, 0.98);
+  --nf-bg-primary:    #e2e8f0; /* Darker tinted bg to make surfaces pop */
+  --nf-bg-secondary:  #cbd5e1;
+  --nf-bg-surface:    #ffffff;
+  --nf-bg-surface-hover: #f8fafc;
+  --nf-bg-input:      #f1f5f9;
+  --nf-bg-sidebar:    #ffffff;
+  --nf-bg-toolbar:    #ffffff;
   --nf-bg-terminal:   #0f172a;
-  --nf-bg-node:       rgba(255, 255, 255, 0.97);
-  --nf-bg-modal:      rgba(255, 255, 255, 0.98);
+  --nf-bg-node:       #ffffff;
+  --nf-bg-modal:      #ffffff;
 
-  --nf-border:        rgba(15, 23, 42, 0.1);
-  --nf-border-hover:  rgba(15, 23, 42, 0.18);
-  --nf-border-subtle: rgba(15, 23, 42, 0.05);
-  --nf-border-accent: rgba(14, 165, 233, 0.4);
+  --nf-border:        rgba(15, 23, 42, 0.15); /* Stronger border */
+  --nf-border-hover:  rgba(15, 23, 42, 0.25);
+  --nf-border-subtle: rgba(15, 23, 42, 0.08);
+  --nf-border-accent: rgba(14, 165, 233, 0.6);
 
-  --nf-text-primary:   #0f172a;
+  --nf-text-primary:   #020617; /* High contrast black */
   --nf-text-secondary: #334155;
-  --nf-text-muted:     #64748b;
-  --nf-text-dim:       #94a3b8;
-  --nf-text-ghost:     #cbd5e1;
+  --nf-text-muted:     #475569;
+  --nf-text-dim:       #64748b;
+  --nf-text-ghost:     #94a3b8;
 
   --nf-accent-cyan:    #0891b2;
   --nf-accent-purple:  #7c3aed;
@@ -128,16 +128,16 @@
   --nf-accent-blue:    #2563eb;
   --nf-accent-pink:    #db2777;
 
-  --nf-glow-cyan:    rgba(8, 145, 178, 0.2);
-  --nf-glow-purple:  rgba(124, 58, 237, 0.2);
-  --nf-glow-yellow:  rgba(217, 119, 6, 0.15);
-  --nf-glow-emerald: rgba(5, 150, 105, 0.15);
-  --nf-glow-red:     rgba(220, 38, 38, 0.2);
+  --nf-glow-cyan:    rgba(8, 145, 178, 0.3);
+  --nf-glow-purple:  rgba(124, 58, 237, 0.3);
+  --nf-glow-yellow:  rgba(217, 119, 6, 0.25);
+  --nf-glow-emerald: rgba(5, 150, 105, 0.25);
+  --nf-glow-red:     rgba(220, 38, 38, 0.3);
 
-  --nf-node-bg:       rgba(255, 255, 255, 0.97);
+  --nf-node-bg:       #ffffff;
   --nf-node-header:   linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
-  --nf-node-shadow:   0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.06);
-  --nf-node-shadow-selected: 0 0 0 2px var(--nf-accent-cyan), 0 0 30px -4px var(--nf-glow-cyan);
+  --nf-node-shadow:   0 8px 16px -4px rgba(0,0,0,0.1), 0 4px 8px -2px rgba(0,0,0,0.06), 0 0 0 1px rgba(15,23,42,0.05);
+  --nf-node-shadow-selected: 0 0 0 2px var(--nf-accent-cyan), 0 12px 24px -4px var(--nf-glow-cyan);
 
   --nf-canvas-line: rgba(14, 165, 233, 0.06);
   --nf-canvas-dot:  rgba(15, 23, 42, 0.06);

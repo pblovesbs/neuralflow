@@ -9,10 +9,11 @@ import asyncio
 import os
 import subprocess
 import tempfile
-from typing import Optional
 
 
-async def run_code(runtime: str, code: str, input_context: str = "", timeout: int = 30) -> dict:
+async def run_code(
+    runtime: str, code: str, input_context: str = "", timeout: int = 30
+) -> dict:
     """
     Execute code in the requested runtime.
     Upstream input_context is injected as an environment variable (NEURALFLOW_INPUT).
@@ -40,10 +41,12 @@ async def run_code(runtime: str, code: str, input_context: str = "", timeout: in
         }
 
     rt_config = runtimes[runtime]
-    
+
     # We use a temp file to execute scripts robustly, especially for multi-line
     # code or languages that don't take `-c` cleanly without escaping issues.
-    with tempfile.NamedTemporaryFile(mode="w", suffix=rt_config["ext"], delete=False) as f:
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=rt_config["ext"], delete=False
+    ) as f:
         f.write(code)
         temp_path = f.name
 

@@ -30,7 +30,7 @@ export default function EmailTriggerNode({ id, data, selected }: FlowNode) {
       });
       const result = await res.json();
       setTestResult(result.message);
-    } catch (e) {
+    } catch {
       setTestResult("Failed to connect to backend");
     }
     setTesting(false);

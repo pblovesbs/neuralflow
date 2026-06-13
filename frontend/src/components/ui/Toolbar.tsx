@@ -10,8 +10,7 @@ import { useRouter } from 'next/navigation';
 import useModeStore from '@/store/modeStore';
 import useFlowStore from '@/store/flowStore';
 import SetupModal from './SetupModal';
-
-
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 export default function Toolbar() {
   const router = useRouter();
   const setMode = useModeStore((s) => s.setMode);
@@ -63,8 +62,26 @@ export default function Toolbar() {
         borderBottom: '1px solid var(--nf-border)',
       }}
     >
-      {/* Left: Status */}
+      {/* Left: Status & Navigation */}
       <div className="flex items-center gap-3">
+        {/* Back/Forward Navigation */}
+        <div className="flex items-center gap-1 border-r border-[var(--nf-border)] pr-3">
+          <button 
+            onClick={() => router.push('/')}
+            className="p-1 rounded text-[var(--nf-text-secondary)] hover:text-[var(--nf-text-primary)] hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+            title="Go to Home"
+          >
+            <ArrowLeft size={16} />
+          </button>
+          <button 
+            onClick={() => router.forward()}
+            className="p-1 rounded text-[var(--nf-text-secondary)] hover:text-[var(--nf-text-primary)] hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+            title="Go Forward"
+          >
+            <ArrowRight size={16} />
+          </button>
+        </div>
+
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
             {status.pulse && (

@@ -14,7 +14,10 @@ from api.models import DagEdge
 class CyclicGraphError(Exception):
     """Raised when the DAG contains a cycle."""
 
-    def __init__(self, message: str = "Graph contains a cycle — cannot determine execution order."):
+    def __init__(
+        self,
+        message: str = "Graph contains a cycle — cannot determine execution order.",
+    ):
         super().__init__(message)
 
 

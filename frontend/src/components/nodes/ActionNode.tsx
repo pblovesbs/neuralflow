@@ -113,7 +113,7 @@ export default function ActionNode({ id, data, selected }: NodeProps) {
           <div>
             <label className="nf-label">Where to Save</label>
             <p className="text-[10px] mb-2" style={{ color: 'var(--nf-text-dim)' }}>
-              The AI's finished output will be written to this file on your Mac.
+              The AI&apos;s finished output will be written to this file on your Mac.
             </p>
 
             {/* Saved path chip */}

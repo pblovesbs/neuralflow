@@ -10,8 +10,6 @@ DB location: ~/.neuralflow/state.db
 
 from __future__ import annotations
 
-import json
-import os
 import sqlite3
 from pathlib import Path
 
@@ -50,6 +48,7 @@ def save_node_output(workflow_id: str, node_id: str, output: str) -> None:
     conn = _get_connection()
     try:
         import time
+
         conn.execute(
             """
             INSERT OR REPLACE INTO node_outputs (workflow_id, node_id, output, created_at)
