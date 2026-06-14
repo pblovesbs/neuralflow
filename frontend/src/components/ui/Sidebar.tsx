@@ -10,6 +10,7 @@ import useFlowStore from '@/store/flowStore';
 import useThemeStore from '@/store/themeStore';
 import { NodeType } from '@/types/dag';
 import { BackendFailsafe } from '@/components/ui/BackendFailsafe';
+import Link from 'next/link';
 
 interface NodePaletteItemProps {
   type: NodeType;
@@ -162,11 +163,9 @@ export default function Sidebar() {
     >
       {/* ── Logo ── */}
       <div className="px-4 py-4 shrink-0" style={{ borderBottom: '1px solid var(--nf-border)' }}>
-        <div className="flex items-center gap-3">
-          <div className="relative w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--nf-gradient-logo)' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
+        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <div className="relative">
+            <img src="/logo.png" alt="NeuralFlow" className="w-10 h-10 object-contain rounded-lg transition-transform hover:scale-105" />
             <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 animate-pulse" style={{ background: '#34d399', borderColor: 'var(--nf-bg-sidebar)' }} />
           </div>
           <div>
@@ -176,7 +175,7 @@ export default function Sidebar() {
               <span style={{ color: '#c084fc', fontWeight: 'bold' }}>Builder Mode</span>
             </p>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* ── Scrollable content ── */}

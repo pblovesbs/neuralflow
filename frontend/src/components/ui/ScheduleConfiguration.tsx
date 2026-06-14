@@ -44,6 +44,7 @@ export function ScheduleConfiguration() {
   useEffect(() => {
     if (cronExpression) {
       try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setHumanCron(cronstrue.toString(cronExpression, { throwExceptionOnParseError: true }));
       } catch {
         setHumanCron('Invalid cron expression');
@@ -180,7 +181,7 @@ export function ScheduleConfiguration() {
                   placeholder="Email address for notifications"
                   className="nf-input max-w-md bg-[var(--nf-bg-input)]"
                 />
-                <p className="text-xs text-[var(--nf-text-muted)] mt-1">We'll send a brief summary to this email after each run.</p>
+                <p className="text-xs text-[var(--nf-text-muted)] mt-1">We&apos;ll send a brief summary to this email after each run.</p>
               </div>
             )}
           </div>

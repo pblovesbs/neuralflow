@@ -45,16 +45,18 @@ def _extract_plain_text(msg: email.message.Message) -> str:
             if ct == "text/plain" and "attachment" not in disp:
                 try:
                     charset = part.get_content_charset() or "utf-8"
-                    body = part.get_payload(decode=True).decode(
-                        charset, errors="replace"
-                    )
+                    payload = part.get_payload(decode=True)
+                    if payload and isinstance(payload, bytes):
+                        body = payload.decode(charset, errors="replace")
                     break
                 except Exception:
                     continue
     else:
         try:
             charset = msg.get_content_charset() or "utf-8"
-            body = msg.get_payload(decode=True).decode(charset, errors="replace")
+            payload = msg.get_payload(decode=True)
+            if payload and isinstance(payload, bytes):
+                body = payload.decode(charset, errors="replace")
         except Exception:
             body = str(msg.get_payload())
 
@@ -105,7 +107,8 @@ def fetch_unread_emails(config: EmailConfig) -> list[dict]:
                 if status != "OK":
                     continue
 
-                raw_email = data[0][1]
+                import typing
+                raw_email = typing.cast(tuple, data[0])[1]
                 msg = email.message_from_bytes(raw_email)
 
                 sender = msg.get("From", "Unknown Sender")

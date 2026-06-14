@@ -6,7 +6,7 @@ Connects to the local Ollama instance at localhost:11434.
 from __future__ import annotations
 
 import json
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 
 import httpx
 
@@ -85,7 +85,7 @@ class OllamaClient:
         prompt: str,
         stream: bool = True,
         num_ctx: int = 4096,
-        options: dict = None,
+        options: Optional[dict] = None,
         keep_alive: str | int | float = "5m",
     ) -> AsyncGenerator[str, None]:
         """
@@ -116,6 +116,7 @@ class OllamaClient:
                 "POST",
                 f"{self.base_url}/api/generate",
                 json=payload,
+                timeout=None,
             ) as response:
                 if response.status_code == 404:
                     raise ModelNotFoundError(
@@ -187,6 +188,26 @@ class OllamaClient:
             )
         except Exception:
             pass  # Best-effort — don't crash if unload fails
+
+    async def unload_all_other_models(self, keep_model: str) -> None:
+        """
+        Queries running models via /api/ps and unloads any model that is NOT
+        the specified `keep_model` by setting its keep_alive to 0.
+
+        Args:
+            keep_model: The model name to keep active.
+        """
+        try:
+            resp = await self.client.get(f"{self.base_url}/api/ps", timeout=5.0)
+            if resp.status_code == 200:
+                data = resp.json()
+                models = data.get("models", [])
+                for m in models:
+                    model_name = m.get("model", m.get("name", ""))
+                    if model_name and model_name != keep_model:
+                        await self.unload_model(model_name)
+        except Exception:
+            pass  # Best-effort — ignore errors while attempting to clean up
 
     @staticmethod
     def _format_size(size_bytes: int) -> str:

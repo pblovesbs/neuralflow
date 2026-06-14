@@ -1,25 +1,31 @@
 import { NextResponse } from 'next/server';
-import { exec } from 'child_process';
+import { spawn } from 'child_process';
+import path from 'path';
+
+let backendProcess: ReturnType<typeof spawn> | null = null;
 
 export async function POST() {
   try {
-    // Determine the command to run the backend.
-    // The frontend is in the 'frontend' directory, so we cd ../backend
-    // We use nohup and direct output to backend.log so the child process detaches
-    // properly and doesn't block the API route.
-    const command = 'cd ../backend && source .venv/bin/activate && nohup uvicorn main:app --reload > backend.log 2>&1 &';
+    // Prevent starting multiple instances if we already spawned one
+    if (backendProcess) {
+      return NextResponse.json({ status: 'already_starting' });
+    }
+
+    const backendDir = path.resolve(process.cwd(), '../backend');
     
-    exec(command, (error) => {
-      if (error) {
-        console.error('Failed to start backend:', error);
-      }
+    // Spawn the uvicorn process
+    backendProcess = spawn('.venv/bin/uvicorn', ['main:app', '--port', '8000'], {
+      cwd: backendDir,
+      detached: true,
+      stdio: 'ignore' // We don't want to pipe stdout/stderr to next.js to prevent hangs
     });
 
-    return NextResponse.json({ success: true, message: 'Backend startup sequence initiated.' });
+    // Unref so the child can run independently of the next.js process
+    backendProcess.unref();
+
+    return NextResponse.json({ status: 'starting', message: 'Backend startup initiated' });
   } catch (error) {
-    return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : String(error) }, 
-      { status: 500 }
-    );
+    backendProcess = null;
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }

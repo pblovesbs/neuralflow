@@ -1,10 +1,9 @@
 "use client";
 import React, { useState } from 'react';
-import { Sparkles, FlaskConical, Rocket, Save, FileCode2, Play, CheckCircle, Database, AlertTriangle, Cpu, Loader2 } from 'lucide-react';
+import { FlaskConical, Rocket, Save } from 'lucide-react';
 import { useWorkflowStore } from '../../store/workflowStore';
 import { useWebSocketLogs } from '../../hooks/useWebSocketLogs';
 import { useValidation } from '../../hooks/useValidation';
-import { HelpTooltip } from './HelpTooltip';
 
 export function OutputConfiguration() {
   const { 
@@ -42,12 +41,41 @@ export function OutputConfiguration() {
   const [showRamWarning, setShowRamWarning] = useState(false);
   const [runMode, setRunMode] = useState<'test' | 'activate'>('test');
   const [explicitBypass, setExplicitBypass] = useState(false);
+  const [engineRunning, setEngineRunning] = useState(false);
+  const [activeTasksCount, setActiveTasksCount] = useState(0);
 
   const status = nodeStatuses['action_1'] || 'idle';
 
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
   const wsUrl = backendUrl.replace('http', 'ws') + '/ws/logs';
   const { connect } = useWebSocketLogs(wsUrl);
+
+  // Poll Engine Status
+  React.useEffect(() => {
+    const checkEngine = async () => {
+      try {
+        const res = await fetch(`${backendUrl}/engine-status`);
+        const data = await res.json();
+        setEngineRunning(data.is_running);
+        setActiveTasksCount(data.active_tasks);
+      } catch {
+        setEngineRunning(false);
+      }
+    };
+    checkEngine();
+    const interval = setInterval(checkEngine, 2000);
+    return () => clearInterval(interval);
+  }, [backendUrl]);
+
+  const stopEngine = async () => {
+    try {
+      await fetch(`${backendUrl}/stop-engine`, { method: 'POST' });
+      setExecutionStatus('failed'); // or stopped
+      addLog("🛑 ENGINE STOPPED: User requested force stop.");
+    } catch {
+      console.warn("Failed to stop engine");
+    }
+  };
 
   const isActive = step >= 4;
   const isPast = step > 4;
@@ -87,6 +115,48 @@ export function OutputConfiguration() {
   };
 
   const executeRun = async (bypassRam: boolean = false) => {
+    // 1. Core Server Health Check & Auto-Start
+    let isBackendRunning = false;
+    try {
+      const healthRes = await fetch(`${backendUrl}/engine-status`, { method: 'GET' });
+      if (healthRes.ok) isBackendRunning = true;
+    } catch {
+      isBackendRunning = false;
+    }
+
+    if (!isBackendRunning) {
+      addLog("⚠️ Backend server not found. Attempting auto-start...");
+      try {
+        await fetch('/api/system/start-backend', { method: 'POST' });
+        
+        // Poll for up to 10 seconds to wait for backend to boot
+        let retries = 10;
+        while (retries > 0) {
+          await new Promise(r => setTimeout(r, 1000));
+          try {
+            const check = await fetch(`${backendUrl}/engine-status`, { method: 'GET' });
+            if (check.ok) {
+              isBackendRunning = true;
+              addLog("✅ Backend server successfully started.");
+              break;
+            }
+          } catch {}
+          retries--;
+        }
+      } catch (error) {
+        console.error("Auto-start failed:", error);
+      }
+    }
+
+    if (!isBackendRunning) {
+      setShowPreRunChecklist(false);
+      addLog("❌ Critical Error: Backend server is unreachable and auto-start failed.");
+      setExecutionStatus('failed');
+      alert("The Backend Server could not be started automatically. Please run it manually from the terminal.");
+      return;
+    }
+
+    // 2. Memory check (if not bypassed)
     if (!bypassRam) {
       try {
         const ramRes = await fetch(`${backendUrl}/api/system/ram`);
@@ -244,8 +314,9 @@ export function OutputConfiguration() {
       } else {
         // Assume success is handled by websocket normally, but just to make sure we don't block
       }
-    } catch {
-      addLog("❌ Failed to connect to execution engine.");
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      addLog(`❌ Failed to connect to execution engine: ${errorMessage}`);
       setExecutionStatus('failed');
       addRunHistoryEntry({
         status: 'failed',
@@ -362,6 +433,26 @@ export function OutputConfiguration() {
         </div>
       )}
 
+      {/* Engine Status Indicator */}
+      <div className="flex items-center justify-between mb-4 mt-8 px-4 py-3 bg-[var(--nf-bg-input)] border border-[var(--nf-border)] rounded-xl">
+        <div className="flex items-center gap-3">
+          <div className="relative flex h-3 w-3">
+            {engineRunning && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--nf-accent-emerald)] opacity-75"></span>}
+            <span className={`relative inline-flex rounded-full h-3 w-3 ${engineRunning ? 'bg-[var(--nf-accent-emerald)]' : 'bg-[var(--nf-text-muted)]'}`}></span>
+          </div>
+          <span className="text-sm font-bold text-[var(--nf-text-primary)]">Engine Status: {engineRunning ? 'Running' : 'Stopped'}</span>
+          {engineRunning && <span className="text-xs text-[var(--nf-text-muted)] bg-[var(--nf-bg-surface)] px-2 py-1 rounded-md border border-[var(--nf-border)]">{activeTasksCount} Active Task{activeTasksCount !== 1 ? 's' : ''}</span>}
+        </div>
+        {engineRunning && (
+          <button 
+            onClick={stopEngine} 
+            className="px-4 py-2 bg-[var(--nf-accent-red)]/20 hover:bg-[var(--nf-accent-red)]/40 border border-[var(--nf-accent-red)]/50 text-[var(--nf-accent-red)] font-bold text-xs rounded-lg transition-colors flex items-center gap-2"
+          >
+            <div className="w-2 h-2 bg-[var(--nf-accent-red)] rounded-sm"></div> Force Stop
+          </button>
+        )}
+      </div>
+
       {/* Buttons */}
       <div className="flex flex-col gap-4 mt-8">
         <div className="flex gap-4">
@@ -388,7 +479,7 @@ export function OutputConfiguration() {
               disabled={!isValid} 
               className="w-full py-4 bg-gradient-to-r from-[var(--nf-accent-cyan)] to-[var(--nf-accent-purple)] rounded-xl text-white font-bold text-lg flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)]"
             >
-              <Sparkles size={20}/> Run Automation
+              <FlaskConical size={20}/> Run Automation
             </button>
           )}
         </div>

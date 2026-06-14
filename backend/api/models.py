@@ -145,7 +145,7 @@ class DagNode(BaseModel):
 
     id: str = Field(..., description="Unique node identifier.")
     type: NodeType = Field(..., description="Node type.")
-    data: NodeData = Field(default_factory=NodeData, description="Node configuration.")
+    data: NodeData = Field(default_factory=NodeData, description="Node configuration.")  # type: ignore
 
 
 class DagEdge(BaseModel):

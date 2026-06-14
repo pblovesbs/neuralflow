@@ -49,7 +49,7 @@ export function ExecutionTelemetry() {
               <Terminal className="text-[var(--nf-text-dim)]" size={32}/>
             </div>
             <p className="text-[var(--nf-text-secondary)] font-medium">Idle / Not Running</p>
-            <p className="text-xs text-[var(--nf-text-muted)] mt-2 max-w-[200px]">Configure your workflow and click "Test Run" or "Activate" to see real-time logs here.</p>
+            <p className="text-xs text-[var(--nf-text-muted)] mt-2 max-w-[200px]">Configure your workflow and click &quot;Test Run&quot; or &quot;Activate&quot; to see real-time logs here.</p>
           </div>
 
           {runHistory.length > 0 && (

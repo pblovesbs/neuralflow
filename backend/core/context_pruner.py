@@ -10,11 +10,12 @@ Fallback: Map-Reduce Summarization (slow, used only when global context is expli
 
 from __future__ import annotations
 
+from typing import Optional
 from core.memory_manager import _chunk_text, _generate_embeddings, _CHROMA_AVAILABLE
 
 
 async def prune_context(
-    context_text: str, query: str = None, max_chars: int = 24_000
+    context_text: str, query: Optional[str] = None, max_chars: int = 24_000
 ) -> str:
     """
     Prune long context to fit within max_chars constraint.

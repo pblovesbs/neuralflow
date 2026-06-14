@@ -45,7 +45,7 @@ async def run_code(
     # We use a temp file to execute scripts robustly, especially for multi-line
     # code or languages that don't take `-c` cleanly without escaping issues.
     with tempfile.NamedTemporaryFile(
-        mode="w", suffix=rt_config["ext"], delete=False
+        mode="w", suffix=str(rt_config["ext"]), delete=False
     ) as f:
         f.write(code)
         temp_path = f.name

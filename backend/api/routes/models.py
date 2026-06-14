@@ -352,23 +352,6 @@ async def install_model(request: InstallRequest):
     }
 
 
-# ─── RAM API ──────────────────────────────────────────────────────────────────
-@router.get("/api/system/ram")
-async def get_ram_info():
-    """Return system RAM stats for the sidebar memory indicator."""
-    try:
-        import psutil
-
-        vm = psutil.virtual_memory()
-        return {
-            "total": vm.total,
-            "available": vm.available,
-            "free": vm.available,
-            "percent": vm.percent,
-        }
-    except ImportError:
-        return {"total": 0, "available": 0, "free": 0, "percent": 0}
-
 
 class SetupRequest(BaseModel):
     ram_gb: int

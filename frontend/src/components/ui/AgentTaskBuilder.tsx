@@ -31,6 +31,7 @@ function findModel(id: string) {
   return null;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function TaskItem({ id, task, idx, updateAiTask, removeAiTask, canRemove, showDeletedToast, installedModels, requestInstall }: any) {
   const { nodeStatuses } = useWorkflowStore();
   const [showModelList, setShowModelList] = useState(false);
@@ -273,6 +274,7 @@ export function AgentTaskBuilder() {
     })
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
     if (active.id !== over.id) {

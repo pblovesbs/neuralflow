@@ -23,8 +23,8 @@ export function useWebSocketLogs(wsUrl: string) {
         let data;
         try {
           data = JSON.parse(event.data);
-        } catch (parseErr) {
-          const sanitized = event.data.replace(/[\u0000-\u001F\u007F-\u009F]/g, function (c) {
+        } catch {
+          const sanitized = event.data.replace(/[\u0000-\u001F\u007F-\u009F]/g, function (c: string) {
             return '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4);
           });
           data = JSON.parse(sanitized);

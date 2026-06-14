@@ -397,3 +397,18 @@ body {
 /* ─── Utility ─────────────────────────────────────────────────────── */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@keyframes hover-throb {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+    box-shadow: 0 20px 50px -10px rgba(34, 211, 238, 0.3), 0 0 100px rgba(192, 132, 252, 0.2);
+  }
+  50% {
+    transform: scale(1.08) translateY(-15px);
+    box-shadow: 0 40px 80px -15px rgba(34, 211, 238, 0.5), 0 0 150px rgba(192, 132, 252, 0.4);
+  }
+}
+.animate-hover-throb {
+  animation: hover-throb 2s ease-in-out infinite;
+  border-radius: 20%;
+}

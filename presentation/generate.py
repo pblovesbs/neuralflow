@@ -1,0 +1,1203 @@
+import os
+
+HTML_CONTENT = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuralFlow - FAR FAR AWAY 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* === ROOT VARIABLES === */
+        :root {
+            --color-void: #0A0A10;
+            --color-purple-core: #7C3AED;
+            --color-purple-glow: #9D5CF6;
+            --color-purple-dim: #4C1D95;
+            --color-blue-core: #3B82F6;
+            --color-blue-glow: #60A5FA;
+            --color-cyan-accent: #22D3EE;
+            --color-success: #10B981;
+            --color-warning: #F59E0B;
+            --color-danger: #EF4444;
+            --color-text-primary: #F8FAFC;
+            --color-text-secondary: #94A3B8;
+            --color-text-muted: #475569;
+            --color-glass-border: rgba(255, 255, 255, 0.08);
+            --color-glass-bg: rgba(255, 255, 255, 0.03);
+            --color-glass-hover: rgba(255, 255, 255, 0.06);
+
+            --z-background-blobs: 0;
+            --z-canvas-particles: 1;
+            --z-sections: 10;
+            --z-sidebar: 100;
+            --z-preloader: 9999;
+            --z-cursor: 10000;
+        }
+
+        /* === RESET & BASE === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none;
+        }
+        body {
+            background-color: var(--color-void);
+            color: var(--color-text-primary);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+        a { text-decoration: none; }
+
+        /* === TYPOGRAPHY === */
+        .text-hero { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 72px; line-height: 1.1; letter-spacing: -2px; }
+        .text-title { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 48px; line-height: 1.15; letter-spacing: -1px; }
+        .text-subtitle { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 28px; line-height: 1.3; }
+        .text-label { font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; }
+        .text-body { font-family: 'Inter', sans-serif; font-weight: 400; font-size: 16px; line-height: 1.75; color: var(--color-text-secondary); }
+        .text-body-lg { font-family: 'Inter', sans-serif; font-weight: 400; font-size: 18px; line-height: 1.8; color: var(--color-text-secondary); }
+        .text-mono { font-family: 'Courier New', monospace; font-weight: 400; font-size: 13px; color: var(--color-cyan-accent); }
+        .gradient-text {
+            background: linear-gradient(135deg, #A78BFA 0%, #818CF8 40%, #60A5FA 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        /* === PRELOADER === */
+        #preloader {
+            background-color: var(--color-void);
+            z-index: var(--z-preloader);
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.4s ease;
+        }
+        #preloader svg {
+            width: 80px; height: 80px;
+            stroke-dasharray: 600;
+            stroke-dashoffset: 600;
+            animation: draw-hex 1.2s ease forwards;
+        }
+        @keyframes draw-hex { to { stroke-dashoffset: 0; } }
+        #preloader .title { opacity: 0; animation: fade-in 0.6s ease forwards 0.8s; margin-top: 24px; }
+        #preloader .bar-container { width: 200px; height: 2px; background: rgba(255,255,255,0.1); margin-top: 24px; position: relative; overflow: hidden; }
+        #preloader .bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--color-purple-core), var(--color-blue-core)); animation: fill-bar 1.8s ease forwards; }
+        @keyframes fill-bar { to { width: 100%; } }
+        @keyframes fade-in { to { opacity: 1; } }
+
+        /* === CURSOR === */
+        #cursor {
+            width: 12px; height: 12px; border-radius: 50%;
+            background: var(--color-purple-core);
+            position: fixed; pointer-events: none; z-index: var(--z-cursor);
+            transform: translate(-50%, -50%);
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+        #cursor-trail {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: transparent; border: 1px solid rgba(124, 58, 237, 0.5);
+            position: fixed; pointer-events: none; z-index: calc(var(--z-cursor) - 1);
+            transform: translate(-50%, -50%);
+            transition: transform 0.15s ease;
+        }
+        #cursor.cursor-hover { transform: translate(-50%, -50%) scale(2.5); background: rgba(124, 58, 237, 0.3); }
+        #cursor-trail.cursor-hover { transform: translate(-50%, -50%) scale(1.5); }
+
+        /* === BACKGROUND ENGINE === */
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: var(--z-background-blobs);
+        }
+        .blob-purple {
+            top: -20%; left: -10%; width: 700px; height: 700px;
+            background: radial-gradient(rgba(124, 58, 237, 0.35) 0%, rgba(124, 58, 237, 0) 70%);
+            filter: blur(140px);
+            animation: drift-purple 22s ease-in-out alternate infinite;
+        }
+        .blob-blue {
+            bottom: -15%; right: -10%; width: 600px; height: 600px;
+            background: radial-gradient(rgba(59, 130, 246, 0.30) 0%, transparent 70%);
+            filter: blur(120px);
+            animation: drift-blue 18s ease-in-out alternate infinite -9s;
+        }
+        .blob-cyan {
+            top: 50%; left: 40%; width: 300px; height: 300px;
+            background: radial-gradient(rgba(34, 211, 238, 0.08) 0%, transparent 70%);
+            filter: blur(80px);
+            animation: drift-cyan 30s linear alternate infinite -5s;
+        }
+        @keyframes drift-purple {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(80px, 60px) scale(1.1); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+        @keyframes drift-blue {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-60px, -80px) scale(0.95); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+        @keyframes drift-cyan {
+            0% { transform: rotate(0deg) translateX(100px) rotate(0deg); }
+            100% { transform: rotate(360deg) translateX(100px) rotate(-360deg); }
+        }
+        #particle-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: var(--z-canvas-particles); pointer-events: none;
+        }
+
+        /* === SIDEBAR === */
+        #sidebar {
+            width: 250px; height: 100vh; position: fixed; left: 0; top: 0;
+            background: rgba(10, 10, 16, 0.80);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid var(--color-glass-border);
+            padding: 20px 12px;
+            z-index: var(--z-sidebar);
+            display: flex; flex-direction: column;
+        }
+        .sidebar-logo {
+            height: 60px; display: flex; align-items: center; justify-content: center; gap: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 24px;
+        }
+        .sidebar-logo svg { width: 28px; height: 28px; }
+        .sidebar-logo span { font-family: 'Outfit'; font-weight: 600; font-size: 16px; }
+        .nav-label { font-family: 'Outfit'; font-weight: 600; font-size: 10px; color: var(--color-text-muted); padding-left: 16px; margin-bottom: 12px; letter-spacing: 3px; text-transform: uppercase; }
+        .nav-buttons { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; }
+        .nav-btn {
+            height: 42px; padding: 0 16px; border-radius: 8px; display: flex; align-items: center; gap: 10px;
+            background: transparent; color: var(--color-text-muted); border: none; outline: none;
+            font-family: 'Inter'; font-size: 14px; font-weight: 500;
+            transition: all 0.2s ease; border-left: 2px solid transparent;
+        }
+        .nav-btn:hover { background: rgba(255,255,255,0.04); color: var(--color-text-secondary); }
+        .nav-btn.nav-active {
+            background: rgba(124, 58, 237, 0.15); color: var(--color-text-primary);
+            border-left: 2px solid var(--color-purple-core);
+            box-shadow: inset 0 0 20px rgba(124, 58, 237, 0.08);
+        }
+        .nav-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .sidebar-footer {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 80px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+        }
+        .sidebar-footer .progress-bar { width: 100%; height: 2px; background: rgba(255,255,255,0.06); position: absolute; top: 0; left: 0; }
+        .sidebar-footer .progress-fill { height: 100%; background: linear-gradient(90deg, var(--color-purple-core), var(--color-blue-core)); transition: width 0.3s ease; }
+        .sidebar-footer .slide-counter { color: var(--color-text-muted); }
+        .sidebar-footer .footer-text { font-size: 10px; color: var(--color-text-muted); }
+
+        /* === CONTENT AREA === */
+        #content {
+            margin-left: 250px; width: calc(100vw - 250px); height: 100vh;
+            position: relative; overflow: hidden; z-index: var(--z-sections);
+        }
+        section {
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0;
+            opacity: 0; pointer-events: none; transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 60px; overflow-y: auto; overflow-x: hidden;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        section.active { opacity: 1; pointer-events: all; }
+        section::-webkit-scrollbar { display: none; }
+
+        /* === GLASS COMPONENTS === */
+        .glass-panel {
+            background: var(--color-glass-bg);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--color-glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* === ANIMATIONS & KEYFRAMES === */
+        .animate-in { opacity: 0; transform: translateY(24px); animation: slide-up-fade 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        @keyframes slide-up-fade { to { opacity: 1; transform: translateY(0); } }
+
+        /* ----------------------------------------------------- */
+        /* SECTION SPECIFIC STYLES                               */
+        /* ----------------------------------------------------- */
+        
+        /* SECTION 1: HOME */
+        #home { display: grid; place-items: center; padding: 0; }
+        .hero-container { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: -80px; }
+        .hex-container { position: relative; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; margin-bottom: 32px; }
+        .hex-logo { width: 160px; height: 185px; animation: throb 3s ease-in-out infinite; }
+        @keyframes throb {
+            0% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(124,58,237,0.4)); }
+            50% { transform: scale(1.06); filter: drop-shadow(0 0 40px rgba(124,58,237,0.8)) drop-shadow(0 0 80px rgba(59,130,246,0.3)); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(124,58,237,0.4)); }
+        }
+        .orbit-ring {
+            position: absolute; width: 100%; height: 100%; border: 1px solid rgba(124,58,237,0.2); border-radius: 50%;
+            animation: orbit-rotate 20s linear infinite;
+        }
+        @keyframes orbit-rotate { to { transform: rotate(360deg); } }
+        .orbit-dot { position: absolute; width: 6px; height: 6px; background: var(--color-purple-glow); border-radius: 50%; box-shadow: 0 0 8px var(--color-purple-glow); left: 50%; top: 0; margin-left: -3px; margin-top: -3px; }
+        .orbit-dot:nth-child(2) { transform-origin: 0 110px; transform: rotate(120deg); }
+        .orbit-dot:nth-child(3) { transform-origin: 0 110px; transform: rotate(240deg); }
+        .hero-stats { position: absolute; bottom: 48px; left: 50%; transform: translateX(-50%); display: flex; gap: 40px; }
+        .stat-block { text-align: center; }
+        .stat-block .num { font-family: 'Outfit'; font-weight: 700; font-size: 32px; }
+        .stat-block .lbl { font-size: 13px; color: var(--color-text-muted); margin-top: 4px; font-family: 'Inter'; }
+        .stat-divider { width: 1px; height: 40px; background: rgba(255,255,255,0.1); }
+
+        /* SECTION 2: PROBLEM */
+        #problem { display: flex; flex-direction: row; justify-content: center; }
+        .col-left { width: 50%; padding-right: 40px; display: flex; flex-direction: column; justify-content: center; }
+        .col-right { width: 50%; display: flex; align-items: center; justify-content: center; position: relative; }
+        .bottleneck-line { display: inline-block; position: relative; }
+        .bottleneck-line::after { content: ''; position: absolute; left: 0; bottom: -4px; width: 100%; height: 2px; background: var(--color-danger); }
+        .problem-list { margin-top: 32px; display: flex; flex-direction: column; gap: 24px; }
+        .problem-item { display: flex; gap: 16px; align-items: flex-start; }
+        .problem-icon { width: 32px; height: 32px; min-width: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); }
+        .problem-text h4 { font-family: 'Inter'; font-weight: 600; font-size: 16px; margin-bottom: 4px; color: var(--color-text-primary); }
+        .problem-text p { font-size: 14px; line-height: 1.6; color: var(--color-text-secondary); font-family: 'Inter'; }
+        .stat-card { margin-top: 40px; padding: 20px; border-radius: 12px; display: flex; align-items: center; gap: 20px; }
+        .stat-card .big-num { font-family: 'Outfit'; font-weight: 800; font-size: 48px; }
+        .stat-card p { font-size: 14px; line-height: 1.5; color: var(--color-text-secondary); font-family: 'Inter'; }
+        .terminal { width: 90%; height: 420px; border-radius: 16px; border: 1px solid rgba(239, 68, 68, 0.2); box-shadow: 0 0 60px rgba(239,68,68,0.08); display: flex; flex-direction: column; }
+        .terminal-header { height: 36px; background: rgba(239,68,68,0.08); display: flex; align-items: center; padding: 0 16px; position: relative; }
+        .dots { display: flex; gap: 6px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .dot.red { background: rgba(255,95,87, 0.4); } .dot.amber { background: rgba(255,189,46, 0.4); } .dot.green { background: rgba(40,202,65, 0.4); }
+        .terminal-title { position: absolute; left: 50%; transform: translateX(-50%); font-family: 'Courier New'; font-size: 12px; color: var(--color-danger); }
+        .terminal-body { flex: 1; background: rgba(0,0,0,0.5); padding: 20px; overflow: hidden; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; white-space: pre; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; }
+        .t-gray { color: #6e7681; } .t-cyan { color: var(--color-cyan-accent); } .t-red { color: var(--color-danger); } .t-amber { color: var(--color-warning); } .t-bold { font-weight: bold; }
+        .cursor-blink { animation: blink 0.8s step-end infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+        .glitch { animation: text-glitch 4s infinite random; }
+        @keyframes text-glitch { 0%, 96%, 100% { transform: translateX(0); color: inherit; } 98% { transform: translateX(2px); color: white; } }
+
+        /* SECTION 3: SOLUTION */
+        .solution-header { text-align: center; margin-bottom: 60px; }
+        .flow-diagram { max-width: 900px; margin: 0 auto; height: 220px; display: flex; align-items: center; justify-content: space-between; position: relative; width: 100%; }
+        .flow-node { border-radius: 50%; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2; }
+        .node-sm { width: 140px; height: 140px; }
+        .node-lg { width: 160px; height: 160px; }
+        .node-user { background: radial-gradient(circle at center, rgba(124,58,237,0.2) 0%, rgba(124,58,237,0.05) 60%, transparent 100%); border: 1px solid rgba(124,58,237,0.4); box-shadow: 0 0 30px rgba(124,58,237,0.3), inset 0 0 20px rgba(124,58,237,0.05); animation: pulse-purple 2.5s ease-in-out infinite; }
+        .node-core { background: radial-gradient(circle at center, rgba(124,58,237,0.35) 0%, rgba(59,130,246,0.15) 60%, transparent 100%); border: 1px solid rgba(124,58,237,0.7); box-shadow: 0 0 50px rgba(124,58,237,0.5), 0 0 100px rgba(59,130,246,0.2), inset 0 0 30px rgba(124,58,237,0.1); animation: pulse-core 3s ease-in-out infinite; }
+        .node-action { background: radial-gradient(circle at center, rgba(59,130,246,0.2) 0%, rgba(59,130,246,0.05) 60%, transparent 100%); border: 1px solid rgba(59,130,246,0.4); box-shadow: 0 0 30px rgba(59,130,246,0.3), inset 0 0 20px rgba(59,130,246,0.05); animation: pulse-blue 2s ease-in-out infinite; }
+        @keyframes pulse-purple { 50% { box-shadow: 0 0 50px rgba(124,58,237,0.4), inset 0 0 20px rgba(124,58,237,0.05); } }
+        @keyframes pulse-core { 50% { box-shadow: 0 0 80px rgba(124,58,237,0.7), 0 0 120px rgba(59,130,246,0.4), inset 0 0 30px rgba(124,58,237,0.1); } }
+        @keyframes pulse-blue { 50% { box-shadow: 0 0 50px rgba(59,130,246,0.4), inset 0 0 20px rgba(59,130,246,0.05); } }
+        .node-lbl { margin-top: 8px; font-family: 'Outfit'; font-weight: 600; font-size: 14px; color: white; }
+        .node-sub { position: absolute; bottom: -30px; font-size: 11px; color: var(--color-text-muted); white-space: nowrap; letter-spacing: 1px; text-transform: uppercase; font-family: 'Outfit'; }
+        .flow-line { position: absolute; height: 2px; background: linear-gradient(90deg, rgba(124,58,237,0.6), rgba(59,130,246,0.6)); top: 50%; margin-top: -1px; z-index: 1; }
+        .flow-line-1 { left: 130px; right: 460px; }
+        .flow-line-2 { left: 460px; right: 130px; }
+        .travel-dot { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--color-purple-glow); box-shadow: 0 0 12px var(--color-purple-glow); top: -3px; animation: travel-right 1.8s ease-in-out infinite; }
+        @keyframes travel-right { 0% { left: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { left: 100%; opacity: 0; } }
+        .proof-tags { display: flex; justify-content: center; gap: 16px; margin-top: 60px; }
+        .proof-tag { padding: 8px 16px; border-radius: 20px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.3); font-family: 'Inter'; font-weight: 500; font-size: 13px; color: var(--color-purple-glow); }
+
+        /* SECTION 4: FEATURES */
+        .feat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 900px; margin: 40px auto 0; }
+        .feat-card { padding: 32px; border-radius: 16px; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
+        .feat-card.hover-enabled:hover { transform: translateY(-8px); border-color: rgba(124,58,237,0.4); box-shadow: 0 20px 60px rgba(124,58,237,0.15), 0 8px 32px rgba(0,0,0,0.4); background: var(--color-glass-hover); }
+        .feat-icon-box { width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; transition: transform 0.3s; }
+        .feat-card.hover-enabled:hover .feat-icon-box { transform: rotate(5deg); }
+        .feat-card h3 { font-family: 'Outfit'; font-weight: 700; font-size: 20px; margin-bottom: 8px; color: var(--color-text-primary); display: flex; align-items: center; gap: 8px; }
+        .live-dot { width: 6px; height: 6px; background: var(--color-success); border-radius: 50%; box-shadow: 0 0 8px var(--color-success); animation: live-blink 1s infinite alternate; }
+        @keyframes live-blink { from { opacity: 0.4; } to { opacity: 1; box-shadow: 0 0 12px var(--color-success); } }
+        .tech-tags { display: flex; gap: 8px; margin-top: 16px; }
+        .tech-tag { padding: 4px 10px; border-radius: 20px; font-size: 11px; background: rgba(255,255,255,0.05); color: var(--color-text-muted); border: 1px solid rgba(255,255,255,0.1); transition: all 0.2s; font-family: 'Inter'; }
+        .tech-tag.hover-enabled:hover { background: rgba(255,255,255,0.1); color: var(--color-text-primary); }
+
+        /* SECTION 5: ARCHITECTURE */
+        #architecture { display: flex; flex-direction: row; align-items: center; }
+        .arch-col-left { width: 40%; padding-right: 40px; }
+        .arch-col-right { width: 60%; display: flex; flex-direction: column; align-items: center; gap: 8px; max-height: 480px;}
+        .arch-panel { width: 100%; border-radius: 12px; padding: 20px 24px; display: flex; align-items: center; gap: 16px; position: relative; border: 1px solid rgba(124,58,237,0.3); background: rgba(124,58,237,0.08); }
+        .arch-panel.cyan { background: rgba(34,211,238,0.05); border-color: rgba(34,211,238,0.25); }
+        .arch-panel.blue { background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.3); }
+        .arch-num { font-family: 'Outfit'; font-weight: 800; font-size: 48px; color: rgba(124,58,237,0.25); }
+        .arch-num.cyan { color: rgba(34,211,238,0.25); }
+        .arch-num.blue { color: rgba(59,130,246,0.25); }
+        .arch-panel h3 { font-family: 'Outfit'; font-weight: 700; font-size: 18px; color: white; margin-bottom: 4px; }
+        .arch-panel p { font-size: 13px; color: var(--color-text-muted); margin-top: 8px; font-family: 'Inter'; }
+        .arch-conn { width: 2px; height: 24px; background: linear-gradient(180deg, var(--color-purple-core), var(--color-blue-core)); position: relative; overflow: hidden; }
+        .arch-conn-dot { width: 2px; height: 8px; background: white; position: absolute; top: -8px; animation: flow-down 1s ease-in-out infinite alternate; }
+        @keyframes flow-down { to { transform: translateY(32px); } }
+
+        /* SECTION 6: DEMO */
+        .demo-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; }
+        .live-badge { padding: 6px 16px; border-radius: 20px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: var(--color-success); font-family: 'Inter'; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+        .browser-window { max-width: 1000px; width: 100%; margin: 0 auto; height: 480px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,58,237,0.1); display: flex; flex-direction: column; overflow: hidden; position: relative;}
+        .browser-header { height: 40px; background: rgba(20, 20, 30, 0.9); display: flex; align-items: center; padding: 0 16px; gap: 8px; z-index: 5;}
+        .browser-url { flex: 1; display: flex; justify-content: center; }
+        .browser-url span { background: rgba(255,255,255,0.06); padding: 4px 12px; border-radius: 4px; font-family: 'Courier New'; font-size: 12px; color: var(--color-text-muted); }
+        .browser-body { flex: 1; background: #0D0D16; position: relative; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 32px 32px; overflow: hidden; }
+        .demo-node { position: absolute; width: 160px; height: 70px; background: var(--color-glass-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--color-glass-border); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; justify-content: center; z-index: 2;}
+        .d-n-1 { top: 40px; left: 40px; } .d-n-2 { top: 140px; left: 260px; } .d-n-3 { top: 240px; left: 260px; } .d-n-4 { top: 240px; left: 480px; } .d-n-5 { top: 340px; left: 700px; }
+        .dn-head { display: flex; align-items: center; gap: 8px; font-family: 'Outfit'; font-weight: 600; font-size: 13px; color: white; margin-bottom: 4px; }
+        .dn-head svg { width: 14px; height: 14px; stroke: white; stroke-width: 2; fill: none; }
+        .dn-status { font-size: 11px; color: var(--color-text-muted); display: flex; align-items: center; gap: 4px; font-family: 'Inter'; }
+        .telemetry-sidebar { position: absolute; right: 20px; top: 60px; width: 220px; height: 200px; padding: 12px; font-family: 'Courier New'; font-size: 11px; color: var(--color-success); border-radius: 8px; display: flex; flex-direction: column; gap: 8px; z-index: 3;}
+        .telemetry-sidebar p { margin: 0; opacity: 0.8; }
+        .svg-edges { position: absolute; top:0; left:0; width: 100%; height: 100%; pointer-events: none; z-index: 1;}
+        .edge-path { fill: none; stroke: rgba(124,58,237,0.3); stroke-width: 2; }
+        .edge-path.edge-active { stroke: rgba(124,58,237,0.8); stroke-width: 3; filter: drop-shadow(0 0 4px rgba(124,58,237,0.8)); }
+
+        /* SECTION 7: BUSINESS */
+        .pricing-grid { display: grid; grid-template-columns: 1fr 1.1fr 1fr; gap: 16px; align-items: start; max-width: 900px; margin: 40px auto 0; }
+        .pricing-card { padding: 32px; border-radius: 16px; position: relative; transition: all 0.25s; }
+        .pricing-card.hover-enabled:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.2); }
+        .pricing-pro { margin-top: -12px; border: 1px solid rgba(124,58,237,0.6); box-shadow: 0 0 40px rgba(124,58,237,0.2); }
+        .pricing-pro.hover-enabled:hover { box-shadow: 0 0 60px rgba(124,58,237,0.4); }
+        .pop-chip { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--color-purple-core); padding: 4px 12px; border-radius: 20px; font-family: 'Outfit'; font-weight: 600; font-size: 11px; color: white; letter-spacing: 1px; }
+        .price-val { font-family: 'Outfit'; font-weight: 900; font-size: 48px; color: white; display: flex; align-items: baseline; gap: 4px; margin-top: 8px; }
+        .price-mo { font-size: 20px; color: var(--color-text-muted); font-weight: 600; }
+        .pricing-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 20px 0; }
+        .feat-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+        .feat-item { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--color-text-secondary); font-family: 'Inter'; }
+        .feat-item svg { width: 16px; height: 16px; stroke: var(--color-text-muted); fill: none; stroke-width: 2; }
+        .feat-item.pro-feat svg { stroke: var(--color-purple-glow); }
+        .btn { padding: 12px 24px; border-radius: 8px; font-family: 'Inter'; font-weight: 600; font-size: 14px; text-align: center; transition: all 0.2s; width: 100%; display: block; border: none; }
+        .btn.hover-enabled:hover { cursor: pointer; }
+        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; }
+        .btn-outline.hover-enabled:hover { background: rgba(255,255,255,0.05); }
+        .btn-primary { background: linear-gradient(135deg, var(--color-purple-core), var(--color-blue-core)); color: white; box-shadow: 0 4px 20px rgba(124,58,237,0.4); }
+        .btn-primary.hover-enabled:hover { box-shadow: 0 8px 30px rgba(124,58,237,0.6); filter: brightness(1.1); transform: scale(1.02); }
+        .market-stat { max-width: 900px; margin: 40px auto 0; padding: 24px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; width: 100%; }
+
+        /* SECTION 8: FUTURE */
+        .future-cols { display: flex; gap: 40px; margin-top: 40px; }
+        .fut-col { width: 50%; display: flex; flex-direction: column; gap: 20px; }
+        .fut-col-right { margin-top: 60px; }
+        .fut-card { padding: 28px; border-radius: 14px; border: 1px solid rgba(124,58,237,0.2); }
+        .fut-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .fut-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: rgba(124,58,237,0.2); }
+        .fut-icon svg { width: 18px; height: 18px; stroke: white; fill: none; stroke-width: 2; }
+        .time-chip { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; border: 1px solid; font-family: 'Inter'; }
+        .tc-amber { background: rgba(245,158,11,0.15); border-color: rgba(245,158,11,0.4); color: var(--color-warning); }
+        .tc-blue { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.4); color: var(--color-blue-glow); }
+        .tc-green { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.4); color: var(--color-success); }
+        .tc-purple { background: rgba(124,58,237,0.15); border-color: rgba(124,58,237,0.4); color: var(--color-purple-glow); }
+        .fut-card h3 { font-family: 'Outfit'; font-weight: 700; font-size: 20px; color: var(--color-text-primary); margin-bottom: 8px; }
+        .fut-card p { font-family: 'Inter'; font-size: 14px; color: var(--color-text-secondary); line-height: 1.6; }
+        .fut-quote { max-width: 600px; margin: 60px auto 0; padding: 28px; text-align: center; position: relative; border-radius: 16px; border: 1px solid rgba(124,58,237,0.25); }
+        .quote-mark { position: absolute; top: -40px; left: 50%; transform: translateX(-50%); font-family: 'Outfit'; font-weight: 900; font-size: 72px; color: rgba(124,58,237,0.2); }
+        .fut-quote p { font-family: 'Inter'; font-size: 16px; line-height: 1.6; color: var(--color-text-primary); margin-bottom: 12px; }
+        .fut-quote span { font-family: 'Inter'; font-size: 13px; color: var(--color-text-muted); font-style: italic; }
+
+        /* SECTION 9: TRACTION */
+        .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 860px; margin: 40px auto 0; width: 100%; }
+        .metric-card { padding: 32px; text-align: center; border-radius: 16px; }
+        .metric-num { font-family: 'Outfit'; font-weight: 900; font-size: 52px; margin-bottom: 8px; display: inline-block; }
+        .metric-lbl { font-family: 'Inter'; font-weight: 500; font-size: 15px; color: var(--color-text-muted); }
+
+        /* SECTION 10: TEAM */
+        .team-grid { display: flex; justify-content: center; gap: 24px; margin-top: 40px; }
+        .team-card { width: 220px; padding: 24px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .avatar { width: 72px; height: 72px; border-radius: 50%; border: 2px solid rgba(124,58,237,0.4); display: flex; align-items: center; justify-content: center; background: rgba(124,58,237,0.1); margin-bottom: 16px; font-family: 'Outfit'; font-weight: 700; font-size: 24px; }
+        .team-card h3 { font-family: 'Outfit'; font-weight: 700; font-size: 16px; color: white; margin-bottom: 4px; }
+        .team-card p { font-family: 'Inter'; font-size: 13px; color: var(--color-text-muted); }
+    </style>
+</head>
+<body>
+
+    <!-- PRELOADER -->
+    <div id="preloader">
+        <svg viewBox="0 0 100 100" fill="none" stroke="url(#hex-gradient)" stroke-width="2">
+            <defs>
+                <linearGradient id="hex-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#7C3AED" />
+                    <stop offset="100%" stop-color="#3B82F6" />
+                </linearGradient>
+            </defs>
+            <polygon points="50,5 95,27.5 95,72.5 50,95 5,72.5 5,27.5" stroke-linejoin="round"/>
+        </svg>
+        <h1 class="text-title gradient-text title">NeuralFlow</h1>
+        <div class="bar-container"><div class="bar-fill"></div></div>
+        <p class="text-label" style="color: var(--color-text-muted); margin-top: 12px;">Initializing NeuralFlow...</p>
+    </div>
+
+    <!-- CURSOR -->
+    <div id="cursor"></div>
+    <div id="cursor-trail"></div>
+
+    <!-- BACKGROUND ENGINE -->
+    <canvas id="particle-canvas"></canvas>
+    <div class="blob blob-purple"></div>
+    <div class="blob blob-blue"></div>
+    <div class="blob blob-cyan"></div>
+
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+        <div class="sidebar-logo">
+            <svg viewBox="0 0 100 100" fill="none" stroke="url(#hex-gradient)" stroke-width="4">
+                <polygon points="50,5 95,27.5 95,72.5 50,95 5,72.5 5,27.5"/>
+            </svg>
+            <span class="gradient-text">NeuralFlow</span>
+        </div>
+        <div class="nav-label">SECTIONS</div>
+        <div class="nav-buttons">
+            <button class="nav-btn nav-active hover-enabled" data-target="home"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg> Home</button>
+            <button class="nav-btn hover-enabled" data-target="problem"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Problem</button>
+            <button class="nav-btn hover-enabled" data-target="solution"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg> Solution</button>
+            <button class="nav-btn hover-enabled" data-target="features"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> Features</button>
+            <button class="nav-btn hover-enabled" data-target="architecture"><svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg> Architecture</button>
+            <button class="nav-btn hover-enabled" data-target="demo"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg> Demo</button>
+            <button class="nav-btn hover-enabled" data-target="business"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg> Business</button>
+            <button class="nav-btn hover-enabled" data-target="future"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg> Future</button>
+            <button class="nav-btn hover-enabled" data-target="traction"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg> Traction</button>
+            <button class="nav-btn hover-enabled" data-target="team"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> Team</button>
+        </div>
+        <div class="sidebar-footer">
+            <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width: 10%;"></div></div>
+            <div class="slide-counter text-label" id="slide-counter">01 / 10</div>
+            <div class="footer-text">FAR FAR AWAY 2026 — NeuralFlow</div>
+        </div>
+    </div>
+
+    <!-- CONTENT AREA -->
+    <div id="content">
+        <!-- 1. HOME -->
+        <section id="home" class="active">
+            <div class="hero-container">
+                <div class="hex-container">
+                    <div class="orbit-ring">
+                        <div class="orbit-dot"></div>
+                        <div class="orbit-dot"></div>
+                        <div class="orbit-dot"></div>
+                    </div>
+                    <svg class="hex-logo" viewBox="0 0 100 100" fill="url(#hex-gradient-fill)" stroke="url(#hex-gradient)" stroke-width="1.5">
+                        <defs>
+                            <linearGradient id="hex-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#7C3AED" />
+                                <stop offset="100%" stop-color="#3B82F6" />
+                            </linearGradient>
+                            <linearGradient id="hex-gradient-fill" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="rgba(124,58,237,0.15)" />
+                                <stop offset="100%" stop-color="rgba(59,130,246,0.15)" />
+                            </linearGradient>
+                        </defs>
+                        <polygon points="50,5 95,27.5 95,72.5 50,95 5,72.5 5,27.5"/>
+                        <!-- Inner Neural Node -->
+                        <circle cx="50" cy="35" r="4" fill="rgba(255,255,255,0.6)" />
+                        <circle cx="35" cy="60" r="4" fill="rgba(255,255,255,0.6)" />
+                        <circle cx="65" cy="60" r="4" fill="rgba(255,255,255,0.6)" />
+                        <line x1="50" y1="35" x2="35" y2="60" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" />
+                        <line x1="50" y1="35" x2="65" y2="60" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" />
+                        <line x1="35" y1="60" x2="65" y2="60" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" />
+                    </svg>
+                </div>
+                <div class="text-label" style="color: var(--color-purple-glow); letter-spacing: 4px;">FAR FAR AWAY 2026 • AGENTIC & AUTONOMOUS SYSTEMS</div>
+                <div class="text-hero gradient-text">NeuralFlow</div>
+                <div class="text-body-lg" style="max-width: 480px;">Visualizing the future of autonomous agent orchestration.</div>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-block"><div class="num gradient-text">&lt; 5min</div><div class="lbl">Automation Setup Time</div></div>
+                <div class="stat-divider"></div>
+                <div class="stat-block"><div class="num gradient-text">∞</div><div class="lbl">Node Combinations</div></div>
+                <div class="stat-divider"></div>
+                <div class="stat-block"><div class="num gradient-text">100%</div><div class="lbl">Local & Private Execution</div></div>
+            </div>
+        </section>
+
+        <!-- 2. PROBLEM -->
+        <section id="problem">
+            <div class="col-left">
+                <div class="text-label" style="color: var(--color-danger); margin-bottom: 12px;">THE CHALLENGE</div>
+                <h2 class="text-title" style="margin-bottom: 8px;">The AI Orchestration <span class="bottleneck-line">Bottleneck</span></h2>
+                
+                <div class="problem-list">
+                    <div class="problem-item">
+                        <div class="problem-icon" style="color: var(--color-danger);"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor"></line></svg></div>
+                        <div class="problem-text"><h4>Trapped in Code</h4><p>Every AI pipeline is buried in raw Python scripts, invisible to business stakeholders and impossible to debug without deep expertise.</p></div>
+                    </div>
+                    <div class="problem-item">
+                        <div class="problem-icon" style="color: var(--color-warning);"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div>
+                        <div class="problem-text"><h4>Silent Cascading Failures</h4><p>When one node fails, the entire chain collapses. No visual feedback means hours of debugging log files line by line.</p></div>
+                    </div>
+                    <div class="problem-item">
+                        <div class="problem-icon" style="color: var(--color-danger);"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div>
+                        <div class="problem-text"><h4>Zero Collaboration</h4><p>Non-technical team members are locked out completely, making AI automation a specialist bottleneck, not a team asset.</p></div>
+                    </div>
+                </div>
+
+                <div class="stat-card glass-panel">
+                    <div class="big-num gradient-text">68%</div>
+                    <p>of AI automation projects fail in the first 90 days due to operational complexity and debugging overhead.<br><span style="font-size: 11px; opacity: 0.5;">Internal Research, 2024.</span></p>
+                </div>
+            </div>
+            <div class="col-right">
+                <div class="terminal glass-panel">
+                    <div class="terminal-header">
+                        <div class="dots"><div class="dot red"></div><div class="dot amber"></div><div class="dot green"></div></div>
+                        <div class="terminal-title">pipeline.py &mdash; ERROR</div>
+                    </div>
+                    <div class="terminal-body">
+<span class="t-gray">1    import asyncio, langchain, anthropic
+2    from agents import orchestrator, memory_pool
+3    from pipeline import DAGExecutor, NodeRegistry
+4   </span>
+<span class="t-gray">5    async def run_multi_agent_pipeline(config):</span>
+<span class="t-cyan">6        dag = DAGExecutor(config.nodes, config.edges)
+7        await dag.initialize_memory_pool()</span>
+<span class="t-red t-bold glitch">8    ↯  RuntimeError: Node 'summarizer' timeout after 30s</span>
+<span class="t-red glitch">9          ↯  Cascade failure: downstream nodes [3,4,5] aborted</span>
+<span class="t-red glitch">10         ↯  Memory context corrupted — rollback failed</span>
+<span class="t-amber">11       ⚠  RetryPolicy: max_retries exceeded (3/3)</span>
+<span class="t-red">12   █  Pipeline halted. Debug log: 2,847 lines.</span> <span class="cursor-blink" style="color: white;">|</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. SOLUTION -->
+        <section id="solution">
+            <div class="solution-header">
+                <div class="text-label" style="color: var(--color-purple-glow); margin-bottom: 12px;">THE SOLUTION</div>
+                <h2 class="text-title" style="margin-bottom: 16px;"><span style="color: white;">Bridging</span> <span class="gradient-text">Logic and Execution</span></h2>
+                <p class="text-body-lg" style="max-width: 600px; margin: 0 auto;">NeuralFlow replaces impenetrable code with a visual, drag-and-drop orchestration layer — making AI automation accessible to everyone.</p>
+            </div>
+            
+            <div class="flow-diagram">
+                <div class="flow-line flow-line-1"><div class="travel-dot"></div></div>
+                <div class="flow-line flow-line-2"><div class="travel-dot" style="animation-delay: 0.9s;"></div></div>
+                
+                <div class="flow-node node-sm node-user">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <div class="node-lbl">You</div>
+                    <div class="node-sub">Drag & Drop Builder</div>
+                </div>
+                
+                <div class="flow-node node-lg node-core">
+                    <svg width="36" height="36" viewBox="0 0 100 100" fill="url(#hex-gradient-fill)" stroke="url(#hex-gradient)" stroke-width="2">
+                        <polygon points="50,5 95,27.5 95,72.5 50,95 5,72.5 5,27.5"/>
+                    </svg>
+                    <div class="node-lbl gradient-text">NeuralFlow</div>
+                    <div class="node-sub">Agent Orchestration Layer</div>
+                </div>
+                
+                <div class="flow-node node-sm node-action">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    <div class="node-lbl">Result</div>
+                    <div class="node-sub">Autonomous Execution</div>
+                </div>
+            </div>
+
+            <div class="proof-tags">
+                <div class="proof-tag glass-panel">✓ No Code Required</div>
+                <div class="proof-tag glass-panel">✓ Visual & Intuitive</div>
+                <div class="proof-tag glass-panel">✓ Real-time Feedback</div>
+            </div>
+        </section>
+
+        <!-- 4. FEATURES -->
+        <section id="features">
+            <div style="text-align: center;">
+                <div class="text-label" style="color: var(--color-text-muted); margin-bottom: 12px;">CAPABILITIES</div>
+                <h2 class="text-title">Built for Power. Designed for Everyone.</h2>
+            </div>
+            
+            <div class="feat-grid">
+                <div class="feat-card glass-panel hover-enabled">
+                    <div class="feat-icon-box" style="background: rgba(124,58,237,0.2);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M19.439 7.85c-.049.322-.059.648-.029.975.112 1.234 1.253 2.139 2.508 2.02l.06-.006c.03.322.04.646.029.972l-.004.048c-.01.32-.027.639-.052.956-.168 2.115-2.023 3.656-4.14 3.444l-2.052-.204a2.217 2.217 0 0 0-2.42 1.993l-.205 2.053c-.212 2.118-2.091 3.652-4.195 3.42l-.062-.005a3.832 3.832 0 0 1-.952-.162l-.053-.016c-.308-.095-.607-.215-.895-.36l-.052-.026a3.82 3.82 0 0 1-.82-.544l-.045-.04c-.266-.239-.512-.5-.733-.78l-.035-.046a3.833 3.833 0 0 1-.532-.823l-.025-.05c-.143-.289-.26-.587-.35-.893l-.014-.05a3.834 3.834 0 0 1-.15-1.025c-.012-.34.004-.68.046-1.016l.006-.05c.026-.33.068-.658.125-.985.195-1.127-.58-2.203-1.745-2.414l-.05-.008c-.34-.055-.678-.088-1.013-.099l-.053-.001c-.34-.01-.678.006-1.012.046-.226.026-.45.068-.673.125l-.049.012c-.22.056-.437.127-.65.213A3.824 3.824 0 0 1 .536 12l-.046-.036c-.23-.197-.442-.416-.632-.656L-.18 11.26a3.833 3.833 0 0 1-.416-.83l-.02-.055c-.104-.302-.187-.611-.247-.926v-.058c-.05-.333-.075-.67-.075-1.008 0-.343.027-.684.079-1.023l.007-.05c.033-.332.083-.66.15-.986.208-1.023 1.258-1.637 2.247-1.328l.056.018c.32.106.632.245.935.417l.053.03c.31.18.607.388.892.624l.05.04c.277.234.542.488.79.76l.044.05c.245.281.474.577.683.886l.035.05c.205.305.39.622.55.947l.024.048A2.215 2.215 0 0 0 7.02 8.35l2.062.205c2.115.21 3.655 2.088 3.443 4.2l-.206 2.061a2.215 2.215 0 0 0 1.996 2.427l2.064.205c1.233.123 2.338-.724 2.502-1.922l.006-.048c.026-.237.039-.475.039-.714 0-.237-.013-.473-.04-.707l-.005-.045c-.027-.234-.067-.466-.118-.694l-.01-.043A3.82 3.82 0 0 1 18.525 12l.046-.035c.224-.176.463-.33.714-.462l.046-.022c.246-.128.5-.236.76-.32z"></path></svg>
+                    </div>
+                    <h3>Visual Node Builder</h3>
+                    <p>Connect agents, LLMs, tools, and memory nodes through an infinite drag-and-drop canvas. No code. No complexity. Pure logic.</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag hover-enabled">React Flow</span>
+                        <span class="tech-tag hover-enabled">WebSockets</span>
+                    </div>
+                </div>
+
+                <div class="feat-card glass-panel hover-enabled">
+                    <div class="feat-icon-box" style="background: rgba(16,185,129,0.2);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    </div>
+                    <h3><div class="live-dot"></div> Live Execution Telemetry</h3>
+                    <p>Watch each agent think in real-time. Node-by-node status updates stream live to your canvas via WebSockets as execution happens.</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag hover-enabled">FastAPI</span>
+                        <span class="tech-tag hover-enabled">WebSocket Streams</span>
+                    </div>
+                </div>
+
+                <div class="feat-card glass-panel hover-enabled">
+                    <div class="feat-icon-box" style="background: rgba(59,130,246,0.2);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+                    </div>
+                    <h3>Intelligent Memory Manager</h3>
+                    <p>Automatic context pruning prevents token overflow across long agent chains. Memory is visualized per node — exactly what each agent knows.</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag hover-enabled">Token Budget</span>
+                        <span class="tech-tag hover-enabled">Sliding Window</span>
+                    </div>
+                </div>
+
+                <div class="feat-card glass-panel hover-enabled">
+                    <div class="feat-icon-box" style="background: rgba(245,158,11,0.2);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+                    </div>
+                    <h3>Safe Local Execution</h3>
+                    <p>All agents run sandboxed. Python execution is fully local via Ollama. Your data never leaves your machine unless you explicitly choose cloud compute.</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag hover-enabled">Sandboxed Python</span>
+                        <span class="tech-tag hover-enabled">Ollama Local</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. ARCHITECTURE -->
+        <section id="architecture">
+            <div class="arch-col-left">
+                <div class="text-label" style="color: var(--color-text-muted); margin-bottom: 12px;">TECH STACK</div>
+                <h2 class="text-title" style="margin-bottom: 16px;">A Pipeline Built for the <span class="gradient-text">Future</span></h2>
+                <p class="text-body" style="margin-bottom: 32px;">Every layer is purpose-built for speed, privacy, and real-time responsiveness. From visual canvas to local model execution — the entire stack runs without cloud dependency.</p>
+                <div style="display: flex; align-items: baseline; gap: 12px;">
+                    <div class="gradient-text" style="font-family: 'Outfit'; font-weight: 700; font-size: 28px;">&lt; 50ms</div>
+                    <div style="font-family: 'Inter'; font-size: 14px; color: var(--color-text-muted);">average node execution latency</div>
+                </div>
+            </div>
+            
+            <div class="arch-col-right">
+                <div class="arch-panel glass-panel">
+                    <div class="arch-num">01</div>
+                    <div style="flex: 1;">
+                        <h3>Frontend UI Layer</h3>
+                        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                            <span class="tech-tag">Next.js 15</span>
+                            <span class="tech-tag">React Flow</span>
+                            <span class="tech-tag">TypeScript</span>
+                        </div>
+                        <p>Node canvas, drag-and-drop builder, real-time telemetry UI.</p>
+                    </div>
+                </div>
+                
+                <div class="arch-conn"><div class="arch-conn-dot"></div></div>
+                
+                <div class="arch-panel glass-panel cyan">
+                    <div class="arch-num cyan">02</div>
+                    <div style="flex: 1;">
+                        <h3>Real-time Communication Bridge</h3>
+                        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                            <span class="tech-tag">WebSockets</span>
+                            <span class="tech-tag">Event Queue</span>
+                        </div>
+                        <p>Bidirectional streaming. Frontend receives live status updates.</p>
+                    </div>
+                </div>
+
+                <div class="arch-conn"><div class="arch-conn-dot"></div></div>
+                
+                <div class="arch-panel glass-panel blue">
+                    <div class="arch-num blue">03</div>
+                    <div style="flex: 1;">
+                        <h3>Backend Execution Engine</h3>
+                        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                            <span class="tech-tag">FastAPI</span>
+                            <span class="tech-tag">Ollama</span>
+                            <span class="tech-tag">Python 3.12</span>
+                        </div>
+                        <p>Local LLM orchestration. Sandboxed DAG-based execution engine.</p>
+                    </div>
+                </div>
+                
+                <div style="font-family: 'Inter'; font-style: italic; font-size: 13px; color: var(--color-text-muted); margin-top: 16px;">Built for speed, security, and 100% local execution.</div>
+            </div>
+        </section>
+
+        <!-- 6. DEMO -->
+        <section id="demo">
+            <div class="demo-header">
+                <div>
+                    <div class="text-label" style="color: var(--color-success); margin-bottom: 12px;">LIVE MVP</div>
+                    <h2 class="text-title">Action Speaks <span class="gradient-text">Louder</span></h2>
+                    <p class="text-body" style="max-width: 600px; margin-top: 8px;">Our MVP is fully functional and running right now. The canvas below is a direct representation of the actual interface — not a mockup.</p>
+                </div>
+                <div class="live-badge"><div class="live-dot"></div> LIVE</div>
+            </div>
+            
+            <div class="browser-window glass-panel">
+                <div class="browser-header">
+                    <div class="dots"><div class="dot red"></div><div class="dot amber"></div><div class="dot green"></div></div>
+                    <div class="browser-url"><span>neuralflow.app/canvas/demo</span></div>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                </div>
+                
+                <div class="browser-body">
+                    <svg class="svg-edges">
+                        <path class="edge-path" id="e1-2" d="M200,75 C230,75 230,175 260,175" />
+                        <path class="edge-path" id="e2-3" d="M340,210 C340,225 340,225 340,240" />
+                        <path class="edge-path" id="e3-4" d="M420,275 L480,275" />
+                        <path class="edge-path" id="e4-5" d="M640,275 C670,275 670,375 700,375" />
+                    </svg>
+
+                    <div class="demo-node d-n-1">
+                        <div class="dn-head"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> Email Trigger</div>
+                        <div class="dn-status" id="n1-stat"><span style="color: var(--color-success);">●</span> Active</div>
+                    </div>
+                    
+                    <div class="demo-node d-n-2">
+                        <div class="dn-head"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path><path d="M2 12h20"></path></svg> Summarize</div>
+                        <div class="dn-status" id="n2-stat"><span style="color: var(--color-warning);">●</span> Running...</div>
+                    </div>
+                    
+                    <div class="demo-node d-n-3">
+                        <div class="dn-head"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg> Classify Agent</div>
+                        <div class="dn-status" id="n3-stat">Waiting</div>
+                    </div>
+                    
+                    <div class="demo-node d-n-4">
+                        <div class="dn-head"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg> Memory Store</div>
+                        <div class="dn-status" id="n4-stat">Ready</div>
+                    </div>
+                    
+                    <div class="demo-node d-n-5">
+                        <div class="dn-head"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Email Reply</div>
+                        <div class="dn-status" id="n5-stat">Queued</div>
+                    </div>
+
+                    <div class="telemetry-sidebar glass-panel">
+                        <div style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 8px; display: flex; justify-content: space-between;">
+                            <span style="color: white; font-weight: bold;">TELEMETRY</span>
+                            <span class="live-dot"></span>
+                        </div>
+                        <p id="t-log-1">Node 1: Complete ✓</p>
+                        <p id="t-log-2" style="color: var(--color-warning);">Node 2: Executing... 1.2s</p>
+                        <p id="t-log-3" style="color: var(--color-text-muted);">Memory: 1,420 tokens</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. BUSINESS -->
+        <section id="business">
+            <div style="text-align: center;">
+                <div class="text-label" style="color: var(--color-text-muted); margin-bottom: 12px;">MONETIZATION</div>
+                <h2 class="text-title">A Scalable <span class="gradient-text">Revenue Model</span></h2>
+                <p class="text-body" style="max-width: 600px; margin: 8px auto 0;">NeuralFlow follows a proven SaaS land-and-expand model — free entry, paid scale, enterprise lock-in.</p>
+            </div>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card glass-panel hover-enabled">
+                    <div class="text-label" style="color: var(--color-text-muted);">STARTER</div>
+                    <div class="price-val">$0<span class="price-mo">/mo</span></div>
+                    <p class="text-body" style="font-size: 14px;">Start building immediately.</p>
+                    <div class="pricing-divider"></div>
+                    <div class="feat-list">
+                        <div class="feat-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> Visual Node Builder</div>
+                        <div class="feat-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> Up to 3 saved workflows</div>
+                        <div class="feat-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> Local LLM execution only</div>
+                        <div class="feat-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> Community support</div>
+                    </div>
+                    <button class="btn btn-outline hover-enabled">Get Started</button>
+                </div>
+                
+                <div class="pricing-card glass-panel pricing-pro hover-enabled">
+                    <div class="pop-chip">MOST POPULAR</div>
+                    <div class="text-label" style="color: var(--color-purple-glow);">PRO</div>
+                    <div class="price-val gradient-text">$49<span class="price-mo">/mo</span></div>
+                    <p class="text-body" style="font-size: 14px;">For professionals who need scale.</p>
+                    <div class="pricing-divider"></div>
+                    <div class="feat-list">
+                        <div class="feat-item pro-feat"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> Everything in Starter</div>
+                        <div class="feat-item pro-feat"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> Hosted cloud execution</div>
+                        <div class="feat-item pro-feat"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> Unlimited workflows</div>
+                        <div class="feat-item pro-feat"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> Priority support</div>
+                    </div>
+                    <button class="btn btn-primary hover-enabled">Start Free Trial</button>
+                </div>
+                
+                <div class="pricing-card glass-panel hover-enabled">
+                    <div class="text-label" style="color: var(--color-text-muted);">ENTERPRISE</div>
+                    <div class="price-val" style="font-size: 40px;">Custom</div>
+                    <p class="text-body" style="font-size: 14px;">For teams who need control.</p>
+                    <div class="pricing-divider"></div>
+                    <div class="feat-list">
+                        <div class="feat-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> On-premise deployment</div>
+                        <div class="feat-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> Custom node development</div>
+                        <div class="feat-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> Dedicated success manager</div>
+                        <div class="feat-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> SLA guarantee (99.9%)</div>
+                    </div>
+                    <button class="btn btn-outline hover-enabled">Contact Sales</button>
+                </div>
+            </div>
+
+            <div class="market-stat glass-panel">
+                <div>
+                    <div class="gradient-text" style="font-family: 'Outfit'; font-weight: 800; font-size: 36px;">$4.2B</div>
+                    <div style="font-family: 'Inter'; font-size: 14px; color: var(--color-text-muted);">AI Workflow Automation Market Size by 2028</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-family: 'Outfit'; font-weight: 700; font-size: 24px; color: var(--color-success);">+67% CAGR</div>
+                    <div style="font-family: 'Inter'; font-size: 14px; color: var(--color-text-muted);">Year-over-year market growth</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. FUTURE -->
+        <section id="future">
+            <div>
+                <div class="text-label" style="color: var(--color-text-muted); margin-bottom: 12px;">ROADMAP</div>
+                <h2 class="text-title"><span style="color: white;">Beyond</span> <span class="gradient-text">Text Automation</span></h2>
+            </div>
+            
+            <div class="future-cols">
+                <div class="fut-col">
+                    <div class="fut-card glass-panel">
+                        <div class="fut-head">
+                            <div class="fut-icon"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></div>
+                            <div class="time-chip tc-amber">Q3 2026</div>
+                        </div>
+                        <h3>Multimodal Vision Agents</h3>
+                        <p>NeuralFlow agents will process live video feeds, screenshots, and image data directly in the node canvas. Vision models like LLaVA will be first-class execution nodes.</p>
+                    </div>
+                    
+                    <div class="fut-card glass-panel">
+                        <div class="fut-head">
+                            <div class="fut-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></div>
+                            <div class="time-chip tc-blue">Q4 2026</div>
+                        </div>
+                        <h3>Node Marketplace</h3>
+                        <p>Developers publish custom nodes to the NeuralFlow marketplace. Users install them in one click. Think npm — but for AI agent components.</p>
+                    </div>
+                </div>
+                
+                <div class="fut-col fut-col-right">
+                    <div class="fut-card glass-panel">
+                        <div class="fut-head">
+                            <div class="fut-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg></div>
+                            <div class="time-chip tc-green">Q1 2027</div>
+                        </div>
+                        <h3>No-Code Agent Studio</h3>
+                        <p>A radically simplified version of the canvas for business analysts, marketers, and operations teams — no technical knowledge required. Drag, describe, deploy.</p>
+                    </div>
+                    
+                    <div class="fut-card glass-panel">
+                        <div class="fut-head">
+                            <div class="fut-icon"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg></div>
+                            <div class="time-chip tc-purple">Q2 2027</div>
+                        </div>
+                        <h3>Enterprise Multi-Agent</h3>
+                        <p>Multiple autonomous agent swarms collaborating in parallel, each with isolated memory pools, coordinated by a master orchestrator node. The future of enterprise AI.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="fut-quote glass-panel">
+                <div class="quote-mark">"</div>
+                <p>We are not building another AI tool. We are building the operating system for how humans and AI agents work together.</p>
+                <span>&mdash; NeuralFlow Team, 2026</span>
+            </div>
+        </section>
+
+        <!-- 9. TRACTION -->
+        <section id="traction">
+            <div style="text-align: center;">
+                <div class="text-label" style="color: var(--color-success); margin-bottom: 12px;">TRACTION</div>
+                <h2 class="text-title">Real Numbers. Real Progress.</h2>
+            </div>
+            
+            <div class="metric-grid">
+                <div class="metric-card glass-panel">
+                    <div class="metric-num gradient-text count-up" data-target="2400">0</div><span style="color: white; font-family:'Outfit'; font-size: 52px; font-weight: 900;">+</span>
+                    <div class="metric-lbl">Lines of Production Code</div>
+                </div>
+                <div class="metric-card glass-panel">
+                    <div class="metric-num gradient-text count-up" data-target="47">0</div>
+                    <div class="metric-lbl">Execution Engine Nodes</div>
+                </div>
+                <div class="metric-card glass-panel">
+                    <div class="metric-num gradient-text static-val" style="color: white; -webkit-text-fill-color: white;">&lt; 50ms</div>
+                    <div class="metric-lbl">Average Execution Latency</div>
+                </div>
+                <div class="metric-card glass-panel">
+                    <div class="metric-num gradient-text count-up" data-target="6">0</div>
+                    <div class="metric-lbl">Workflow Types Supported</div>
+                </div>
+                <div class="metric-card glass-panel">
+                    <div class="metric-num gradient-text static-val" style="color: white; -webkit-text-fill-color: white;">100%</div>
+                    <div class="metric-lbl">Local Execution Priority</div>
+                </div>
+                <div class="metric-card glass-panel">
+                    <div class="metric-num gradient-text count-up" data-target="60">0</div><span style="color: white; font-family:'Outfit'; font-size: 52px; font-weight: 900;">hrs</span>
+                    <div class="metric-lbl">Time Spent Building</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. TEAM -->
+        <section id="team">
+            <div style="text-align: center; margin-top: 40px;">
+                <div class="text-label" style="color: var(--color-purple-glow); margin-bottom: 12px; letter-spacing: 2px;">THE ARCHITECT</div>
+                <h2 class="text-title" style="margin-bottom: 40px;">Behind the Pipeline</h2>
+            </div>
+            
+            <div style="display: flex; justify-content: center; align-items: center; flex-direction: column; margin-bottom: 60px;">
+                <div class="team-card glass-panel" style="width: 320px; padding: 40px 24px; border-top: 2px solid var(--color-purple-core); background: rgba(10,10,16,0.8); box-shadow: 0 20px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);">
+                    <div class="avatar" style="width: 80px; height: 80px; font-size: 32px; background: linear-gradient(135deg, var(--color-purple-core), var(--color-blue-core)); color: white; margin-bottom: 24px; border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 0 20px rgba(124,58,237,0.4);">PB</div>
+                    <h3 style="font-size: 24px; margin-bottom: 8px;">Preyas Bera</h3>
+                    <p style="font-size: 15px; color: var(--color-cyan-accent); letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">Full Stack + AI</p>
+                    <div style="width: 40px; height: 2px; background: rgba(255,255,255,0.1); margin: 20px auto;"></div>
+                    <p style="font-size: 13px; line-height: 1.6; color: var(--color-text-muted);">Creator of NeuralFlow. Designed and engineered from scratch to bridge the gap between complex AI logic and intuitive execution.</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; padding: 20px; border-radius: 12px; background: rgba(255,255,255,0.03); max-width: 400px; margin: 0 auto; border: 1px solid rgba(255,255,255,0.05);">
+                <div class="text-label" style="color: var(--color-text-muted); font-size: 12px; letter-spacing: 2px; margin-bottom: 4px;">HACKATHON BUILD</div>
+                <div class="gradient-text" style="font-family: 'Outfit'; font-weight: 700; font-size: 20px;">Built in 60 hours</div>
+                <div style="font-family: 'Inter'; font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 4px;">FAR FAR AWAY 2026</div>
+            </div>
+        </section>
+    </div>
+
+<script>
+/* === INIT & CONSTANTS === */
+const SECTIONS = ['home', 'problem', 'solution', 'features', 'architecture', 'demo', 'business', 'future', 'traction', 'team'];
+let currentIndex = 0;
+let isAnimating = false;
+
+/* === PRELOADER === */
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const p = document.getElementById('preloader');
+        p.style.opacity = '0';
+        setTimeout(() => p.style.display = 'none', 400);
+        
+        // Trigger initial animations
+        animateSectionIn('home');
+    }, 2500);
+});
+
+/* === CUSTOM CURSOR === */
+const cursor = document.getElementById('cursor');
+const cursorTrail = document.getElementById('cursor-trail');
+let mouseX = window.innerWidth / 2;
+let mouseY = window.innerHeight / 2;
+let trailX = mouseX;
+let trailY = mouseY;
+
+document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    cursor.style.left = `${mouseX}px`;
+    cursor.style.top = `${mouseY}px`;
+});
+
+function animateCursorTrail() {
+    trailX += (mouseX - trailX) * 0.2;
+    trailY += (mouseY - trailY) * 0.2;
+    cursorTrail.style.left = `${trailX}px`;
+    cursorTrail.style.top = `${trailY}px`;
+    requestAnimationFrame(animateCursorTrail);
+}
+animateCursorTrail();
+
+document.querySelectorAll('.nav-btn, .hover-enabled').forEach(el => {
+    el.addEventListener('mouseenter', () => { cursor.classList.add('cursor-hover'); cursorTrail.classList.add('cursor-hover'); });
+    el.addEventListener('mouseleave', () => { cursor.classList.remove('cursor-hover'); cursorTrail.classList.remove('cursor-hover'); });
+});
+
+/* === PARTICLE CANVAS === */
+const canvas = document.getElementById('particle-canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+const particles = [];
+
+for (let i = 0; i < 40; i++) {
+    particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vy: -0.5 - Math.random() * 1.5,
+        radius: 1 + Math.random() * 2,
+        color: Math.random() > 0.5 ? 'rgba(124, 58, 237, 0.3)' : 'rgba(59, 130, 246, 0.3)'
+    });
+}
+
+function drawParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+        p.y += p.vy;
+        if (p.y < -10) { p.y = canvas.height + 10; p.x = Math.random() * canvas.width; }
+    });
+    requestAnimationFrame(drawParticles);
+}
+drawParticles();
+window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+
+/* === NAVIGATION SYSTEM === */
+function navigateTo(index) {
+    if (isAnimating || index === currentIndex) return;
+    if (index < 0 || index >= SECTIONS.length) return;
+    isAnimating = true;
+
+    const currentId = SECTIONS[currentIndex];
+    const targetId = SECTIONS[index];
+    const currentSection = document.getElementById(currentId);
+    const targetSection = document.getElementById(targetId);
+
+    // Update Nav UI
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('nav-active'));
+    document.querySelector(`[data-target="${targetId}"]`).classList.add('nav-active');
+    
+    // Update footer
+    document.getElementById('progress-fill').style.width = `${((index + 1) / SECTIONS.length) * 100}%`;
+    document.getElementById('slide-counter').textContent = `0${index + 1}`.slice(-2) + ` / ${SECTIONS.length}`;
+
+    // Fade out current
+    currentSection.style.opacity = '0';
+    
+    setTimeout(() => {
+        currentSection.classList.remove('active');
+        currentSection.style.pointerEvents = 'none';
+        
+        targetSection.classList.add('active');
+        targetSection.style.pointerEvents = 'all';
+        targetSection.style.opacity = '1';
+        
+        animateSectionIn(targetId);
+        
+        currentIndex = index;
+        isAnimating = false;
+        
+        if (targetId === 'demo') startDemoSim(); else stopDemoSim();
+        if (targetId === 'traction') triggerCountUp();
+    }, 300);
+}
+
+document.querySelectorAll('.nav-btn').forEach((btn, idx) => {
+    btn.addEventListener('click', () => navigateTo(idx));
+});
+
+/* === KEYBOARD NAVIGATION === */
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+        navigateTo(currentIndex + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        navigateTo(currentIndex - 1);
+    } else if (e.key === 'Escape') {
+        navigateTo(0);
+    } else if (e.key >= '1' && e.key <= '9') {
+        navigateTo(parseInt(e.key) - 1);
+    } else if (e.key === '0') {
+        navigateTo(9); // Section 10
+    }
+});
+
+/* === ANIMATE IN LOGIC === */
+function animateSectionIn(id) {
+    const section = document.getElementById(id);
+    const elements = section.querySelectorAll('h2, .text-label, .text-body, .glass-panel, .hero-container, .flow-diagram, .proof-tags, .terminal, .problem-list');
+    elements.forEach((el, i) => {
+        el.style.animation = 'none';
+        el.offsetHeight; // trigger reflow
+        el.style.animation = `slide-up-fade 0.5s cubic-bezier(0.4, 0, 0.2, 1) ${i * 100}ms forwards`;
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(24px)';
+    });
+}
+
+/* === DEMO SIMULATOR === */
+let demoTimer;
+let demoTick = 0;
+function startDemoSim() {
+    stopDemoSim();
+    demoTick = 0;
+    demoTimer = setInterval(() => {
+        const e1 = document.getElementById('e1-2');
+        const e2 = document.getElementById('e2-3');
+        const e3 = document.getElementById('e3-4');
+        const e4 = document.getElementById('e4-5');
+        
+        const n1 = document.getElementById('n1-stat');
+        const n2 = document.getElementById('n2-stat');
+        const n3 = document.getElementById('n3-stat');
+        const n4 = document.getElementById('n4-stat');
+        const n5 = document.getElementById('n5-stat');
+
+        const log1 = document.getElementById('t-log-1');
+        const log2 = document.getElementById('t-log-2');
+        const log3 = document.getElementById('t-log-3');
+
+        // Reset all edges
+        [e1, e2, e3, e4].forEach(e => e.classList.remove('edge-active'));
+
+        demoTick++;
+        if (demoTick === 1) {
+            e1.classList.add('edge-active');
+            n1.innerHTML = '<span style="color: var(--color-success);">●</span> Complete';
+            n2.innerHTML = '<span style="color: var(--color-warning);">●</span> Running...';
+            log1.textContent = 'Node 1: Complete ✓';
+            log2.textContent = 'Node 2: Executing...';
+            log2.style.color = 'var(--color-warning)';
+        } else if (demoTick === 2) {
+            e2.classList.add('edge-active');
+            n2.innerHTML = '<span style="color: var(--color-success);">●</span> Complete';
+            n3.innerHTML = '<span style="color: var(--color-warning);">●</span> Classifying...';
+            log2.textContent = 'Node 2: Complete ✓';
+            log2.style.color = 'var(--color-success)';
+            log3.textContent = 'Node 3: Executing...';
+            log3.style.color = 'var(--color-warning)';
+        } else if (demoTick === 3) {
+            e3.classList.add('edge-active');
+            n3.innerHTML = '<span style="color: var(--color-success);">●</span> Complete';
+            n4.innerHTML = '<span style="color: var(--color-warning);">●</span> Saving...';
+            log3.textContent = 'Memory updated: 1,420 tokens';
+            log3.style.color = 'var(--color-text-muted)';
+        } else if (demoTick === 4) {
+            e4.classList.add('edge-active');
+            n4.innerHTML = '<span style="color: var(--color-success);">●</span> Saved';
+            n5.innerHTML = '<span style="color: var(--color-warning);">●</span> Sending...';
+            log1.textContent = 'Node 4: Complete ✓';
+            log2.textContent = 'Node 5: Executing...';
+        } else if (demoTick === 5) {
+            n5.innerHTML = '<span style="color: var(--color-success);">●</span> Sent';
+            log2.textContent = 'Node 5: Complete ✓';
+            log3.textContent = 'Pipeline execution finished.';
+            log3.style.color = 'var(--color-success)';
+        } else if (demoTick >= 7) {
+            demoTick = 0; // reset
+            n1.innerHTML = '<span style="color: var(--color-success);">●</span> Active';
+            n2.innerHTML = 'Waiting'; n3.innerHTML = 'Waiting'; n4.innerHTML = 'Ready'; n5.innerHTML = 'Queued';
+            log1.textContent = 'System ready.'; log2.textContent = 'Waiting for trigger...'; log3.textContent = '';
+            log2.style.color = 'var(--color-text-muted)';
+        }
+    }, 2000);
+}
+function stopDemoSim() { clearInterval(demoTimer); }
+
+/* === COUNT-UP ANIMATIONS === */
+let counted = false;
+function triggerCountUp() {
+    if (counted) return;
+    counted = true;
+    document.querySelectorAll('.count-up').forEach(el => {
+        const target = parseInt(el.getAttribute('data-target'));
+        let start = 0;
+        const duration = 1500;
+        const step = target / (duration / 16);
+        const timer = setInterval(() => {
+            start += step;
+            if (start >= target) {
+                el.textContent = target;
+                clearInterval(timer);
+            } else {
+                el.textContent = Math.floor(start);
+            }
+        }, 16);
+    });
+}
+</script>
+</body>
+</html>
+"""
+with open("/Users/preyasbera/Desktop/neuralflow/presentation/index.html", "w") as f:
+    f.write(HTML_CONTENT)

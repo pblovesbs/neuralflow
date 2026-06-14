@@ -249,7 +249,8 @@ export default function AgentNode({ id, data, selected }: NodeProps) {
               {/* Dropdown panel */}
               {showModelList && (
                 <div
-                  className="absolute top-[calc(100%+4px)] left-0 right-0 z-50 rounded-xl overflow-y-auto animate-slide-up"
+                  className="absolute top-[calc(100%+4px)] left-0 right-0 z-50 rounded-xl overflow-y-auto animate-slide-up nowheel nodrag"
+                  onWheel={(e) => e.stopPropagation()}
                   style={{
                     background: 'var(--nf-bg-modal)',
                     border: '1px solid var(--nf-border-accent)',
@@ -476,7 +477,7 @@ export default function AgentNode({ id, data, selected }: NodeProps) {
                       min="0"
                       max="60"
                       placeholder="e.g. 5"
-                      value={nodeData.keep_alive ?? 5}
+                      value={(nodeData.keep_alive as number) ?? 5}
                       onChange={e => updateNodeData(id, { keep_alive: parseInt(e.target.value) })}
                       className="nf-input"
                     />
@@ -484,7 +485,7 @@ export default function AgentNode({ id, data, selected }: NodeProps) {
                   <div>
                     <label className="nf-label">Quantization</label>
                     <select
-                      value={nodeData.quantization ?? 'q4_K_M'}
+                      value={((nodeData.quantization as string) ?? 'q4_K_M')}
                       onChange={e => updateNodeData(id, { quantization: e.target.value })}
                       className="nf-input"
                     >
@@ -498,14 +499,14 @@ export default function AgentNode({ id, data, selected }: NodeProps) {
                 <div>
                   <label className="nf-label flex justify-between">
                     <span>Context Window Limits</span>
-                    <span className="text-[9px] text-neutral-500">{nodeData.num_ctx ?? 4096} tokens</span>
+                    <span className="text-[9px] text-neutral-500">{(nodeData.num_ctx as number) ?? 4096} tokens</span>
                   </label>
                   <input
                     type="range"
                     min="2048"
                     max="32768"
                     step="1024"
-                    value={nodeData.num_ctx ?? 4096}
+                    value={(nodeData.num_ctx as number) ?? 4096}
                     onChange={e => updateNodeData(id, { num_ctx: parseInt(e.target.value) })}
                     className="w-full mt-2 accent-cyan-400"
                   />

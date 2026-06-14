@@ -47,6 +47,7 @@ export default function StandardPage() {
   // The persist middleware already auto-saves. The saveCurrentAutomation is for the history list.
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (triggerType) setShowTemplates(false);
   }, [triggerType]);
 
@@ -87,9 +88,7 @@ export default function StandardPage() {
             className="flex items-center gap-2 text-[var(--nf-text-primary)] font-bold text-lg hover:opacity-80 transition-opacity"
             title="Exit to Home"
           >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--nf-accent-cyan)] to-[var(--nf-accent-purple)] flex items-center justify-center">
-              <Sparkles size={16} className="text-white" />
-            </div>
+            <img src="/logo.png" alt="NeuralFlow" className="w-8 h-8 object-contain rounded-md transition-transform hover:scale-105" />
             NeuralFlow
           </button>
 

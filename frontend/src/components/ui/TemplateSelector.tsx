@@ -103,7 +103,7 @@ export function TemplateSelector({ onStartScratch }: { onStartScratch: () => voi
             </div>
           </div>
           <h3 className="font-bold text-[var(--nf-text-primary)] text-lg mb-2">Start from Scratch</h3>
-          <p className="text-sm text-[var(--nf-text-muted)] flex-1">I know what I'm doing. Build a custom automation pipeline from the ground up.</p>
+          <p className="text-sm text-[var(--nf-text-muted)] flex-1">I know what I&apos;m doing. Build a custom automation pipeline from the ground up.</p>
           
           <div className="mt-6 flex items-center text-[11px] font-bold text-[var(--nf-accent-purple)] opacity-80 group-hover:opacity-100 transition-opacity">
             CREATE BLANK

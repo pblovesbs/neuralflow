@@ -17,6 +17,9 @@ from core.ollama_client.client import global_ollama_client
 
 router = APIRouter()
 
+# Global dict to track running workflows for engine status and force stop
+active_workflow_tasks: dict[str, asyncio.Task] = {}
+
 
 async def _run_workflow(workflow: DagWorkflow):
     """
@@ -102,7 +105,7 @@ async def _run_workflow(workflow: DagWorkflow):
                 input_context=input_context,
                 ws_manager=manager,
                 ollama=global_ollama_client,
-                bypass_ram_check=workflow.bypass_ram_check,
+                bypass_ram_check=workflow.bypass_ram_check or False,
             )
             node_outputs[node_id] = output
             save_node_output(workflow.workflow_id, node_id, output)
@@ -128,7 +131,8 @@ async def _run_workflow(workflow: DagWorkflow):
     # ── Hardware Adaptive Engine: Sliding Concurrency Gate ──
     ready_nodes = [n for n in node_ids if not edge_map.get(n)]
     pending_nodes = set(node_ids) - set(ready_nodes)
-    running_tasks = {}
+    from typing import Any
+    running_tasks: dict[str, asyncio.Task[Any]] = {}
 
     from core.hardware import get_available_vram_bytes, estimate_vram_required
 
@@ -207,16 +211,31 @@ async def _run_workflow(workflow: DagWorkflow):
                         pending_nodes.remove(pending)
                         ready_nodes.append(pending)
 
-    # Launch the scheduler loop
-    await _execute_ready_batch()
+    try:
+        # Launch the scheduler loop
+        await _execute_ready_batch()
 
-    if not workflow_failed.is_set():
+        if not workflow_failed.is_set():
+            await broadcast_log(
+                manager,
+                "system",
+                f"═══ Workflow '{workflow.workflow_id}' completed successfully ═══",
+                "SUCCESS",
+            )
+    except asyncio.CancelledError:
+        # Cleanup if cancelled via Force Stop
+        for task in running_tasks.values():
+            task.cancel()
         await broadcast_log(
             manager,
             "system",
-            f"═══ Workflow '{workflow.workflow_id}' completed successfully ═══",
-            "SUCCESS",
+            f"═══ Workflow '{workflow.workflow_id}' forcibly stopped ═══",
+            "WARN",
         )
+    finally:
+        # Clean up global task tracker
+        if workflow.workflow_id in active_workflow_tasks:
+            del active_workflow_tasks[workflow.workflow_id]
 
 
 @router.post("/execute-graph", response_model=ExecutionResponse)
@@ -231,13 +250,22 @@ async def execute_graph(
     then launches execution as a background task.
     Real-time logs are streamed via the /ws/logs WebSocket endpoint.
     """
-    # Validate: check for cycles before starting
+    # 1. Health check the AI backend server before starting
+    # If bypass_ram_check is true, it means Force Start is active, so we bypass strict health requirements.
+    if not workflow.bypass_ram_check:
+        is_ollama_healthy = await global_ollama_client.health_check()
+        if not is_ollama_healthy:
+            raise HTTPException(
+                status_code=503, 
+                detail="The AI backend server (Ollama) is not running. Please start it before executing automations."
+            )
+
+    # 2. Validate: check for cycles before starting
     node_ids = [node.id for node in workflow.nodes]
     try:
         topological_sort(node_ids, workflow.edges)
     except CyclicGraphError:
         # Broadcast friendly message via WS instead of raw HTTP error
-        import asyncio
 
         async def _send_cycle_error():
             await broadcast_log(
@@ -253,11 +281,47 @@ async def execute_graph(
             status_code=400, detail="Cyclic graph detected. Check your connections."
         )
 
-    # Launch execution as background task
-    background_tasks.add_task(_run_workflow, workflow)
+    # Cancel any existing workflows before starting a new one
+    for task_id, task in list(active_workflow_tasks.items()):
+        task.cancel()
+        del active_workflow_tasks[task_id]
+
+    # Launch execution explicitly as asyncio Task
+    task = asyncio.create_task(_run_workflow(workflow))
+    active_workflow_tasks[workflow.workflow_id] = task
 
     return ExecutionResponse(
         status=ExecutionStatus.STARTED,
         workflow_id=workflow.workflow_id,
         message=f"Workflow started with {len(workflow.nodes)} nodes.",
     )
+
+@router.post("/stop-engine")
+async def stop_engine():
+    """
+    Forcefully stop all currently running workflows.
+    """
+    count = len(active_workflow_tasks)
+    for task_id, task in list(active_workflow_tasks.items()):
+        task.cancel()
+        del active_workflow_tasks[task_id]
+        
+    import asyncio
+    async def _send_stop_msg():
+        await broadcast_log(
+            manager,
+            "system",
+            "🛑 ENGINE STOPPED: All running tasks have been terminated by the user.",
+            "ERROR",
+        )
+    asyncio.create_task(_send_stop_msg())
+
+    return {"status": "stopped", "stopped_tasks": count}
+
+@router.get("/engine-status")
+async def engine_status():
+    """
+    Check if the engine is currently running any workflows.
+    """
+    is_running = len(active_workflow_tasks) > 0
+    return {"is_running": is_running, "active_tasks": len(active_workflow_tasks)}

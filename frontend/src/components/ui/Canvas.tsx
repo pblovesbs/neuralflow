@@ -27,7 +27,6 @@ import MemoryQueryNode from '@/components/nodes/MemoryQueryNode';
 import SubprocessActionNode from '@/components/nodes/SubprocessActionNode';
 import CronTriggerNode from '@/components/nodes/CronTriggerNode';
 import ClipboardTriggerNode from '@/components/nodes/ClipboardTriggerNode';
-import TemplateGallery from '@/components/ui/TemplateGallery';
 
 const nodeTypes = {
   trigger: TriggerNode,
@@ -55,9 +54,6 @@ export default function Canvas() {
   const onConnect = useFlowStore((s) => s.onConnect);
   const addNode = useFlowStore((s) => s.addNode);
   const loadState = useFlowStore((s) => s.loadState);
-  
-  // Only show gallery if not loading state (will adjust dynamically)
-  const showGallery = nodes.length === 0;
 
   React.useEffect(() => {
     loadState();
@@ -97,8 +93,6 @@ export default function Canvas() {
 
   return (
     <div ref={reactFlowWrapper} className="w-full h-full relative" style={{ background: bgColor }}>
-      {showGallery && <TemplateGallery />}
-
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -107,7 +101,8 @@ export default function Canvas() {
         onConnect={onConnect}
         onDragOver={onDragOver}
         onDrop={onDrop}
-        nodeTypes={nodeTypes as Record<string, React.ComponentType<unknown>>}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        nodeTypes={nodeTypes as any}
         defaultEdgeOptions={defaultEdgeOptions}
         fitView
         fitViewOptions={{ padding: 0.25, maxZoom: 1 }}

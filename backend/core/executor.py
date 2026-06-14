@@ -30,6 +30,7 @@ class ExecutionError(Exception):
 
 
 # Track the last model loaded in Ollama to enable smart VRAM unloading
+# (Deprecated: now dynamically checks /api/ps to unload all others)
 _last_active_model: Optional[str] = None
 
 
@@ -168,13 +169,12 @@ async def execute_agent_node(
         pass  # psutil not installed — skip check
 
     # ── VRAM Lifecycle Manager ────────────────────────────────────────────────
-    if _last_active_model and _last_active_model != model:
-        await broadcast_log(
-            ws_manager,
-            node.id,
-            f"♻️ Unloading '{_last_active_model}' from memory to free VRAM...",
-        )
-        await ollama.unload_model(_last_active_model)
+    await broadcast_log(
+        ws_manager,
+        node.id,
+        f"♻️ Enforcing exclusivity: Unloading any models other than '{model}' from memory...",
+    )
+    await ollama.unload_all_other_models(model)
     _last_active_model = model
 
     # ── Context Window Cap (Memory Efficiency via RAG) ─────────────────────────
@@ -203,7 +203,7 @@ async def execute_agent_node(
     from api.routes.models import CURATED_MODELS
 
     model_meta = next((m for m in CURATED_MODELS if m["id"] == model), None)
-    num_ctx = model_meta["num_ctx"] if model_meta else 4096
+    num_ctx = int(str(model_meta["num_ctx"])) if model_meta else 4096
     # Scale up if content is long
     if len(prompt) > 12000 and num_ctx < 8192:
         num_ctx = 8192
@@ -217,7 +217,8 @@ async def execute_agent_node(
 
     try:
         # Build options dict for fine-tuning
-        options = {}
+        from typing import Any
+        options: dict[str, Any] = {}
         if hasattr(node.data, "temperature") and node.data.temperature is not None:
             options["temperature"] = node.data.temperature
         if hasattr(node.data, "max_tokens") and node.data.max_tokens is not None:
@@ -413,7 +414,7 @@ async def execute_action_node(
                 pdf.add_page()
                 pdf.set_font("Helvetica", size=12)
                 # Encode text to latin-1 or handle Unicode properly
-                pdf.multi_cell(0, 10, txt=input_context.encode('latin-1', 'replace').decode('latin-1'))
+                pdf.multi_cell(0, 10, text=input_context.encode('latin-1', 'replace').decode('latin-1'))
                 await asyncio.to_thread(pdf.output, target_path)
             except ImportError:
                 await broadcast_log(ws_manager, node.id, "fpdf2 not installed. Saving as text.", "WARN")
@@ -473,10 +474,10 @@ async def execute_email_trigger_node(node: DagNode, ws_manager) -> str:
     await broadcast_log(ws_manager, node.id, "📧 TRIGGER: Checking email inbox...")
     try:
         config = EmailConfig(
-            imap_server=node.data.imap_server,
-            imap_port=node.data.imap_port,
-            email_address=node.data.email_address,
-            app_password=node.data.app_password,
+            imap_server=node.data.imap_server or "",
+            imap_port=node.data.imap_port or 993,
+            email_address=node.data.email_address or "",
+            app_password=node.data.app_password or "",
             email_count=node.data.email_count or "1"
         )
         results = await poll_inbox_once(config)
@@ -546,7 +547,7 @@ async def execute_browser_action_node(node: DagNode, ws_manager) -> str:
         result = await scrape_url(
             url=url,
             instruction=node.data.browser_instruction or "",
-            headless=node.data.browser_headless,
+            headless=node.data.browser_headless if hasattr(node.data, "browser_headless") and node.data.browser_headless is not None else True,
         )
         if result["status"] == "error":
             await broadcast_log(

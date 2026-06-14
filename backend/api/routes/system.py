@@ -59,7 +59,7 @@ async def register_clipboard_filter(req: ClipboardFilterRequest):
     """Register a workflow to be triggered by clipboard changes."""
     from core.clipboard_monitor import register_filter
 
-    register_filter(req.workflow_id, req.filter_text, req.regex)
+    register_filter(req.workflow_id, req.filter_text or "", bool(req.regex))
     return {
         "status": "success",
         "message": f"Registered clipboard monitor for {req.workflow_id}",
@@ -128,18 +128,27 @@ async def remove_schedule(workflow_id: str):
 
 @router.get("/api/system/ram")
 async def get_system_ram():
-    from core.settings import settings
+    from core.config import settings
     try:
         import psutil
-        available_gb = psutil.virtual_memory().available / (1024**3)
+        vm = psutil.virtual_memory()
+        available_gb = vm.available / (1024**3)
         return {
             "status": "success",
             "available_gb": available_gb,
-            "safe_limit": settings.safe_ram_gb_limit
+            "safe_limit": settings.safe_ram_gb_limit,
+            "total": vm.total,
+            "available": vm.available,
+            "free": vm.available,
+            "percent": vm.percent
         }
     except ImportError:
         return {
             "status": "error",
-            "message": "psutil not installed"
+            "message": "psutil not installed",
+            "total": 0,
+            "available": 0,
+            "free": 0,
+            "percent": 0
         }
 
