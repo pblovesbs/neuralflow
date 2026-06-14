@@ -25,12 +25,14 @@ class EmailConfig:
         email_address: str,
         app_password: str,
         poll_interval: int = 60,
+        email_count: str = "1",
     ):
         self.imap_server = imap_server
         self.imap_port = imap_port
         self.email_address = email_address
         self.app_password = app_password
         self.poll_interval = max(15, poll_interval)  # Minimum 15s to avoid rate limits
+        self.email_count = email_count.lower().strip()
 
 
 def _extract_plain_text(msg: email.message.Message) -> str:
@@ -83,8 +85,20 @@ def fetch_unread_emails(config: EmailConfig) -> list[dict]:
             return []
 
         msg_ids = messages[0].split()
-        # Process newest first, cap at 10 to avoid flooding the pipeline
-        for msg_id in msg_ids[-10:]:
+        
+        # Determine how many emails to fetch
+        if config.email_count == "all":
+            limit = 50  # Hard cap to avoid blowing up memory/context window
+        else:
+            try:
+                limit = int(config.email_count)
+            except ValueError:
+                limit = 1
+
+        limit = max(1, min(limit, 50)) # Clamp between 1 and 50
+
+        # Process the first N emails sequentially (oldest unread first)
+        for msg_id in msg_ids[:limit]:
             try:
                 # Fetch message
                 status, data = mail.fetch(msg_id, "(RFC822)")

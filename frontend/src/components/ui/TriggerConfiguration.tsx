@@ -15,6 +15,8 @@ export function TriggerConfiguration() {
     setEmail,
     appPassword,
     setAppPassword,
+    itemCount,
+    setItemCount,
     sourcePath,
     setSourcePath,
     nodeStatuses
@@ -133,7 +135,46 @@ export function TriggerConfiguration() {
             </div>
             {getFieldError('appPassword') && <p className="text-xs text-[var(--nf-accent-red)] mt-1">{getFieldError('appPassword')?.message}</p>}
           </div>
+
           <p className="text-xs text-[var(--nf-text-muted)]">IMAP settings automatically configured.</p>
+        </div>
+      )}
+
+      {triggerType && (
+        <div className="animate-fade-in mt-6 pt-6 border-t border-[var(--nf-border)] flex gap-4 items-center">
+          <label className="text-sm text-[var(--nf-text-primary)] font-medium">
+            {triggerType === 'email' ? 'Number of emails to read:' : triggerType === 'folder' ? 'Number of files to process:' : 'Number of items to read:'}
+          </label>
+          <select
+            value={['1', '3', '5', '10', 'all'].includes(itemCount.toLowerCase()) ? itemCount.toLowerCase() : 'custom'}
+            onChange={(e) => {
+              if (e.target.value === 'custom') {
+                setItemCount('15');
+              } else {
+                setItemCount(e.target.value);
+              }
+            }}
+            className="bg-[var(--nf-bg-input)] border border-[var(--nf-border)] focus:border-[var(--nf-accent-cyan)]/50 rounded-lg p-2 text-[var(--nf-text-primary)] outline-none"
+          >
+            <option value="1">1 {triggerType === 'email' ? '(Oldest)' : ''}</option>
+            <option value="3">3</option>
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="all">All (up to 50)</option>
+            <option value="custom">Custom...</option>
+          </select>
+          
+          {!['1', '3', '5', '10', 'all'].includes(itemCount.toLowerCase()) && (
+            <input 
+              type="number" 
+              min="1"
+              max="50"
+              value={itemCount}
+              onChange={(e) => setItemCount(e.target.value)}
+              className="w-20 bg-[var(--nf-bg-input)] border border-[var(--nf-border)] focus:border-[var(--nf-accent-cyan)]/50 rounded-lg p-2 text-[var(--nf-text-primary)] outline-none"
+              placeholder="Count"
+            />
+          )}
         </div>
       )}
 

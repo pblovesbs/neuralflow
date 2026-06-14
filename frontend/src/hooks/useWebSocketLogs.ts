@@ -20,8 +20,17 @@ export function useWebSocketLogs(wsUrl: string) {
 
     ws.onmessage = (event) => {
       try {
-        const data = JSON.parse(event.data);
-        if (data.message) {
+        let data;
+        try {
+          data = JSON.parse(event.data);
+        } catch (parseErr) {
+          const sanitized = event.data.replace(/[\u0000-\u001F\u007F-\u009F]/g, function (c) {
+            return '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4);
+          });
+          data = JSON.parse(sanitized);
+        }
+        
+        if (data && data.message) {
           addLog(`[${new Date(data.timestamp).toLocaleTimeString()}] ${data.message}`);
           
           if (data.message.includes('──── Executing node:')) {

@@ -9,6 +9,7 @@ import { ExecutionTelemetry } from '../../components/ui/ExecutionTelemetry';
 import { ScheduleConfiguration } from '../../components/ui/ScheduleConfiguration';
 import { TemplateSelector } from '../../components/ui/TemplateSelector';
 import { StepProgress } from '../../components/ui/StepProgress';
+import { BackendFailsafe } from '../../components/ui/BackendFailsafe';
 import { Sparkles, Sun, Moon, Save, ChevronDown, Rocket, Trash2, Check, ArrowLeft, ArrowRight, Home } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -27,7 +28,7 @@ export default function StandardPage() {
   } = useWorkflowStore();
   
   const router = useRouter();
-  const { theme, toggleTheme } = useThemeStore();
+  const { mode: theme, toggleTheme } = useThemeStore();
   
   const [showTemplates, setShowTemplates] = useState(!triggerType);
   const [saveIndicator, setSaveIndicator] = useState(false);
@@ -167,7 +168,6 @@ export default function StandardPage() {
 
           <div className="h-6 w-px bg-[var(--nf-border)] mx-1"></div>
 
-          {/* Theme Toggle */}
           <button 
             onClick={toggleTheme}
             className="p-2 text-[var(--nf-text-muted)] hover:text-[var(--nf-text-primary)] bg-[var(--nf-bg-input)] hover:bg-[var(--nf-bg-surface-hover)] rounded-lg transition-colors border border-[var(--nf-border)]"
@@ -175,6 +175,11 @@ export default function StandardPage() {
           >
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
+
+          <div className="h-6 w-px bg-[var(--nf-border)] mx-1"></div>
+
+          <BackendFailsafe />
+
         </div>
       </header>
 

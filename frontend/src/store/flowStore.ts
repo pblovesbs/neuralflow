@@ -206,9 +206,7 @@ const useFlowStore = create<FlowStore>()((set, get) => ({
         id: n.id,
         type: n.type as 'trigger' | 'agent' | 'action',
         data: {
-          model: n.data.model as string | undefined,
-          prompt_template: n.data.prompt_template as string | undefined,
-          target_path: n.data.target_path as string | undefined,
+          ...n.data,
         },
       })),
       edges: edges.map((e) => ({

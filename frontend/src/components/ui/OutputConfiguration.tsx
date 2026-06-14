@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { Sparkles, FlaskConical, Rocket } from 'lucide-react';
+import { Sparkles, FlaskConical, Rocket, Save, FileCode2, Play, CheckCircle, Database, AlertTriangle, Cpu, Loader2 } from 'lucide-react';
 import { useWorkflowStore } from '../../store/workflowStore';
 import { useWebSocketLogs } from '../../hooks/useWebSocketLogs';
 import { useValidation } from '../../hooks/useValidation';
@@ -8,15 +8,22 @@ import { HelpTooltip } from './HelpTooltip';
 
 export function OutputConfiguration() {
   const { 
-    step, 
+    step,
     setStep,
+    outputStrategy, 
+    setOutputStrategy,
+    outputFormat,
+    setOutputFormat,
+    targetPath,
+    setTargetPath,
+    topology,
+    setTopology,
     triggerType, 
     sourcePath, 
     email,
     appPassword,
+    itemCount,
     aiTasks,
-    targetPath, 
-    setTargetPath,
     setIsExecuting,
     setExecutionStatus,
     setCompletedNodes,
@@ -27,15 +34,14 @@ export function OutputConfiguration() {
     cronExpression,
     addRunHistoryEntry,
     automationName,
-    outputFormat,
-    setOutputFormat
+    notifyOnRun
   } = useWorkflowStore();
   
   const { isValid, errors } = useValidation();
   const [showPreRunChecklist, setShowPreRunChecklist] = useState(false);
   const [showRamWarning, setShowRamWarning] = useState(false);
-  const [explicitBypass, setExplicitBypass] = useState(false);
   const [runMode, setRunMode] = useState<'test' | 'activate'>('test');
+  const [explicitBypass, setExplicitBypass] = useState(false);
 
   const status = nodeStatuses['action_1'] || 'idle';
 
@@ -43,7 +49,31 @@ export function OutputConfiguration() {
   const wsUrl = backendUrl.replace('http', 'ws') + '/ws/logs';
   const { connect } = useWebSocketLogs(wsUrl);
 
-  if (step < 4) return null;
+  const isActive = step >= 4;
+  const isPast = step > 4;
+
+  if (!isActive && !isPast) return null;
+
+  if (!isActive) {
+    return (
+      <div className="mb-6 p-4 rounded-xl border border-[var(--nf-border)] bg-transparent opacity-80 hover:opacity-100 transition-opacity flex items-center justify-between group cursor-pointer" onClick={() => setStep(4)}>
+        <div className="flex items-center gap-4">
+          <div className="w-8 h-8 rounded-full bg-[var(--nf-bg-surface)] border border-[var(--nf-border)] flex items-center justify-center text-[var(--nf-text-muted)]">
+            <Save size={14} className="text-[var(--nf-accent-cyan)]" />
+          </div>
+          <div>
+            <h4 className="text-xs font-bold text-[var(--nf-text-muted)] uppercase tracking-wider">Step 4: Output</h4>
+            <p className="text-sm font-medium text-[var(--nf-text-primary)]">
+              {outputStrategy === 'single_file' ? 'Single Unified File' : 'Multiple Outputs'}
+            </p>
+          </div>
+        </div>
+        <button onClick={() => setStep(4)} className="px-3 py-1.5 text-xs font-bold text-[var(--nf-text-secondary)] hover:text-[var(--nf-text-primary)] bg-[var(--nf-bg-input)] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+          Edit
+        </button>
+      </div>
+    );
+  }
 
   const pickSystemPath = async (type: 'folder' | 'save' | 'file') => {
     try {
@@ -92,28 +122,23 @@ export function OutputConfiguration() {
         return { server: 'imap.example.com', port: 993 };
       };
       const imap = inferImap(email);
-      nodes.push({ id: triggerId, type: 'email_trigger', data: { email_address: email, app_password: appPassword, imap_server: imap.server, imap_port: imap.port } });
+      nodes.push({ 
+        id: triggerId, 
+        type: 'email_trigger', 
+        data: { 
+          email_address: email, 
+          app_password: appPassword, 
+          imap_server: imap.server, 
+          imap_port: imap.port,
+          email_count: itemCount,
+          item_count: itemCount
+        } 
+      });
     } else {
-      nodes.push({ id: triggerId, type: 'trigger', data: { target_path: sourcePath } });
+      nodes.push({ id: triggerId, type: 'trigger', data: { target_path: sourcePath, item_count: itemCount } });
     }
 
-    // 2. AI Tasks
-    let lastNodeId = triggerId;
-    aiTasks.forEach((task, idx) => {
-      const taskId = `agent_${idx}`;
-      nodes.push({
-        id: taskId,
-        type: 'agent',
-        data: {
-          model: task.model,
-          prompt_template: `Act as a ${task.role || 'helpful assistant'}. Your task is to: ${task.task}. Format the output strictly as: ${task.format || 'text'}. \n\nData:\n{{input}}`
-        }
-      });
-      edges.push({ source: lastNodeId, target: taskId });
-      lastNodeId = taskId;
-    });
-
-    // 3. Action Node
+    // 2. AI Tasks & 3. Actions based on Topology
     let finalTargetPath = targetPath.trim();
     if (finalTargetPath && !finalTargetPath.includes('.')) {
         const randomName = `output_${Math.random().toString(36).substring(2, 9)}`;
@@ -121,9 +146,74 @@ export function OutputConfiguration() {
         addLog(`ℹ️ Auto-generating file name: ${randomName}`);
     }
 
-    const actionId = 'action_1';
-    nodes.push({ id: actionId, type: 'action', data: { target_path: finalTargetPath, output_format: outputFormat } });
-    edges.push({ source: lastNodeId, target: actionId });
+    if (topology === 'pipeline_final') {
+      let lastNodeId = triggerId;
+      aiTasks.forEach((task, idx) => {
+        const taskId = `agent_${idx}`;
+        nodes.push({
+          id: taskId,
+          type: 'agent',
+          data: {
+            model: task.model,
+            prompt_template: `Act as a ${task.role || 'helpful assistant'}. Your task is to: ${task.task}. Format the output strictly as: ${task.format || 'text'}. \n\nData:\n{{input}}`
+          }
+        });
+        edges.push({ source: lastNodeId, target: taskId });
+        lastNodeId = taskId;
+      });
+
+      const actionId = 'action_final';
+      nodes.push({ id: actionId, type: 'action', data: { target_path: finalTargetPath, output_format: outputFormat } });
+      edges.push({ source: lastNodeId, target: actionId });
+
+    } else if (topology === 'pipeline_all' || topology === 'parallel') {
+      let lastNodeId = triggerId;
+      
+      aiTasks.forEach((task, idx) => {
+        const taskId = `agent_${idx}`;
+        nodes.push({
+          id: taskId,
+          type: 'agent',
+          data: {
+            model: task.model,
+            prompt_template: `Act as a ${task.role || 'helpful assistant'}. Your task is to: ${task.task}. Format the output strictly as: ${task.format || 'text'}. \n\nData:\n{{input}}`
+          }
+        });
+
+        if (topology === 'pipeline_all') {
+          edges.push({ source: lastNodeId, target: taskId });
+          lastNodeId = taskId;
+        } else {
+          // Parallel: everyone connects to the trigger
+          edges.push({ source: triggerId, target: taskId });
+        }
+
+        // Action Routing
+        if (outputStrategy === 'single_file') {
+          // Edges to a unified action added after the loop
+        } else {
+          // Separate files or folders
+          let tp = finalTargetPath;
+          if (outputStrategy === 'separate_folders') {
+            const baseDir = targetPath.trim() || '.';
+            tp = `${baseDir}/Step_${idx + 1}/output_${Math.random().toString(36).substring(2, 9)}`;
+          } else if (outputStrategy === 'separate_files') {
+            const baseDir = targetPath.trim() || '.';
+            tp = `${baseDir}/step_${idx + 1}_${Math.random().toString(36).substring(2, 9)}`;
+          }
+          
+          nodes.push({ id: `action_${idx}`, type: 'action', data: { target_path: tp, output_format: outputFormat } });
+          edges.push({ source: taskId, target: `action_${idx}` });
+        }
+      });
+
+      if (outputStrategy === 'single_file') {
+        nodes.push({ id: 'action_unified', type: 'action', data: { target_path: finalTargetPath, output_format: outputFormat } });
+        aiTasks.forEach((_, idx) => {
+          edges.push({ source: `agent_${idx}`, target: 'action_unified' });
+        });
+      }
+    }
 
     setTotalNodes(nodes.length);
     connect();
@@ -173,6 +263,72 @@ export function OutputConfiguration() {
   return (
     <div className="mb-12 p-6 rounded-2xl border bg-[var(--nf-bg-surface)] border-[var(--nf-accent-emerald)]/50 shadow-lg shadow-[var(--nf-accent-emerald)]/5 animate-fade-in relative">
       
+      {aiTasks.length > 1 && (
+        <div className="mb-12 pb-12 border-b border-[var(--nf-border)] relative">
+          {/* Timeline Node */}
+          <div className={`absolute -left-[53px] top-2 w-6 h-6 rounded-full border-4 border-[var(--nf-bg-primary)] z-10 transition-colors bg-[var(--nf-border)]`} />
+          <h3 className="text-xl font-bold text-[var(--nf-text-primary)] mb-4">Multi-Step Routing</h3>
+          
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-bold text-[var(--nf-text-secondary)] mb-2">Execution Topology</label>
+              <div className="space-y-2">
+                <label className="flex items-start gap-3 p-3 rounded-lg border border-[var(--nf-border)] hover:bg-[var(--nf-bg-input)] cursor-pointer transition-colors">
+                  <input type="radio" name="topology" checked={topology === 'pipeline_final'} onChange={() => setTopology('pipeline_final')} className="mt-1" />
+                  <div>
+                    <div className="text-sm font-bold text-[var(--nf-text-primary)]">Sequential (Final Output Only)</div>
+                    <div className="text-xs text-[var(--nf-text-muted)]">Step 1 passes data to Step 2. Only the final result is saved.</div>
+                  </div>
+                </label>
+                <label className="flex items-start gap-3 p-3 rounded-lg border border-[var(--nf-border)] hover:bg-[var(--nf-bg-input)] cursor-pointer transition-colors">
+                  <input type="radio" name="topology" checked={topology === 'pipeline_all'} onChange={() => setTopology('pipeline_all')} className="mt-1" />
+                  <div>
+                    <div className="text-sm font-bold text-[var(--nf-text-primary)]">Sequential (Save All Steps)</div>
+                    <div className="text-xs text-[var(--nf-text-muted)]">Step 1 saves output, then passes data to Step 2 which also saves output.</div>
+                  </div>
+                </label>
+                <label className="flex items-start gap-3 p-3 rounded-lg border border-[var(--nf-border)] hover:bg-[var(--nf-bg-input)] cursor-pointer transition-colors">
+                  <input type="radio" name="topology" checked={topology === 'parallel'} onChange={() => setTopology('parallel')} className="mt-1" />
+                  <div>
+                    <div className="text-sm font-bold text-[var(--nf-text-primary)]">Parallel (Independent)</div>
+                    <div className="text-xs text-[var(--nf-text-muted)]">All steps read the original source data simultaneously.</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {(topology === 'pipeline_all' || topology === 'parallel') && (
+              <div className="animate-fade-in">
+                <label className="block text-sm font-bold text-[var(--nf-text-secondary)] mb-2">Output Strategy</label>
+                <div className="space-y-2">
+                  <label className="flex items-start gap-3 p-3 rounded-lg border border-[var(--nf-border)] hover:bg-[var(--nf-bg-input)] cursor-pointer transition-colors">
+                    <input type="radio" name="outputStrat" checked={outputStrategy === 'single_file'} onChange={() => setOutputStrategy('single_file')} className="mt-1" />
+                    <div>
+                      <div className="text-sm font-bold text-[var(--nf-text-primary)]">Single File</div>
+                      <div className="text-xs text-[var(--nf-text-muted)]">Append all step outputs together.</div>
+                    </div>
+                  </label>
+                  <label className="flex items-start gap-3 p-3 rounded-lg border border-[var(--nf-border)] hover:bg-[var(--nf-bg-input)] cursor-pointer transition-colors">
+                    <input type="radio" name="outputStrat" checked={outputStrategy === 'separate_files'} onChange={() => setOutputStrategy('separate_files')} className="mt-1" />
+                    <div>
+                      <div className="text-sm font-bold text-[var(--nf-text-primary)]">Separate Files</div>
+                      <div className="text-xs text-[var(--nf-text-muted)]">Save each step in a separate file (e.g., step_1.txt, step_2.txt).</div>
+                    </div>
+                  </label>
+                  <label className="flex items-start gap-3 p-3 rounded-lg border border-[var(--nf-border)] hover:bg-[var(--nf-bg-input)] cursor-pointer transition-colors">
+                    <input type="radio" name="outputStrat" checked={outputStrategy === 'separate_folders'} onChange={() => setOutputStrategy('separate_folders')} className="mt-1" />
+                    <div>
+                      <div className="text-sm font-bold text-[var(--nf-text-primary)]">Separate Folders</div>
+                      <div className="text-xs text-[var(--nf-text-muted)]">Create subfolders for each step (e.g., /Step_1/output.txt).</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Timeline Node */}
       <div className={`absolute -left-[53px] top-8 w-6 h-6 rounded-full border-4 border-[var(--nf-bg-primary)] z-10 transition-colors ${status === 'completed' ? 'bg-[var(--nf-accent-emerald)]' : status === 'running' ? 'bg-[var(--nf-accent-emerald)] animate-pulse' : status === 'error' ? 'bg-[var(--nf-accent-red)]' : 'bg-[var(--nf-border)]'}`} />
 

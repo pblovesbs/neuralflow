@@ -53,21 +53,22 @@ export function ScheduleConfiguration() {
     }
   }, [cronExpression]);
 
-  if (step < 3) return null;
-
   const isActive = step === 3;
+  const isPast = step > 3;
+
+  if (!isActive && !isPast) return null;
 
   if (!isActive) {
     return (
-      <div className="mb-6 p-4 rounded-xl border border-[var(--nf-border)] bg-transparent opacity-80 hover:opacity-100 transition-opacity flex items-center justify-between group">
+      <div className="mb-6 p-4 rounded-xl border border-[var(--nf-border)] bg-transparent opacity-80 hover:opacity-100 transition-opacity flex items-center justify-between group cursor-pointer" onClick={() => setStep(3)}>
         <div className="flex items-center gap-4">
           <div className="w-8 h-8 rounded-full bg-[var(--nf-bg-surface)] border border-[var(--nf-border)] flex items-center justify-center text-[var(--nf-text-muted)]">
             <CalendarClock size={14} className="text-[var(--nf-accent-purple)]" />
           </div>
           <div>
             <h4 className="text-xs font-bold text-[var(--nf-text-muted)] uppercase tracking-wider">Step 3: Schedule</h4>
-            <p className="text-sm font-semibold text-[var(--nf-text-primary)]">
-              {scheduleEnabled ? `Scheduled (${schedulePreset})` : 'Run Once Manually'}
+            <p className="text-sm font-medium text-[var(--nf-text-primary)]">
+              {scheduleEnabled ? `Active: ${humanCron}` : 'Run Once / Manual'}
             </p>
           </div>
         </div>

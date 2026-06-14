@@ -74,10 +74,19 @@ async def execute_trigger_node(
             return content
 
         elif os.path.isdir(target_path):
-            # Read directory listing with file previews concurrently
-            items = sorted(await asyncio.to_thread(os.listdir, target_path))[
-                :20
-            ]  # Limit to 20 items
+            # Parse limit from item_count
+            item_count_str = str(node.data.item_count or "1").lower().strip()
+            if item_count_str == "all":
+                limit = 50
+            else:
+                try:
+                    limit = int(item_count_str)
+                except ValueError:
+                    limit = 1
+            limit = max(1, min(limit, 50))
+
+            # Read directory listing
+            items = sorted(await asyncio.to_thread(os.listdir, target_path))[:limit]
 
             async def _read_preview(item: str) -> str:
                 item_path = os.path.join(target_path, item)
@@ -93,13 +102,16 @@ async def execute_trigger_node(
                 else:
                     return f"--- {item}/ --- [directory]\n"
 
-            entries = await asyncio.gather(*[_read_preview(item) for item in items])
+            # Check files one after another sequentially
+            entries = []
+            for item in items:
+                entries.append(await _read_preview(item))
 
             content = "\n".join(entries)
             await broadcast_log(
                 ws_manager,
                 node.id,
-                f"✓ Scanned directory ({len(entries)} items): {target_path}",
+                f"✓ Scanned directory sequentially ({len(entries)} items): {target_path}",
                 "SUCCESS",
             )
             return content
@@ -227,24 +239,70 @@ async def execute_agent_node(
         chunks = []
         chunk_count = 0
 
-        async for chunk in ollama.generate(
-            model=model,
-            prompt=prompt,
-            stream=True,
-            num_ctx=num_ctx,
-            options=options,
-            keep_alive=f"{node.data.keep_alive}m"
-            if hasattr(node.data, "keep_alive") and node.data.keep_alive is not None
-            else "5m",
-        ):
-            chunks.append(chunk)
-            chunk_count += 1
-            if chunk_count % 5 == 0:
-                await broadcast_log(
-                    ws_manager,
-                    node.id,
-                    f"   ▸ Streaming... ({sum(len(c) for c in chunks):,} chars received)",
-                )
+        try:
+            async for chunk in ollama.generate(
+                model=model,
+                prompt=prompt,
+                stream=True,
+                num_ctx=num_ctx,
+                options=options,
+                keep_alive=f"{node.data.keep_alive}m"
+                if hasattr(node.data, "keep_alive") and node.data.keep_alive is not None
+                else "5m",
+            ):
+                chunks.append(chunk)
+                chunk_count += 1
+                if chunk_count % 10 == 0:
+                    await broadcast_log(
+                        ws_manager,
+                        node.id,
+                        f"   [Stream] Generated {len(chunks)} tokens...",
+                    )
+        except ModelNotFoundError:
+            await broadcast_log(
+                ws_manager,
+                node.id,
+                f"⚠️ Model '{model}' not found. Pulling it automatically... This might take a few minutes.",
+                "WARN"
+            )
+            try:
+                last_status = ""
+                async for status in ollama.pull_model(model):
+                    msg = status.get("status", "Downloading...")
+                    if "completed" in status and "total" in status:
+                        pct = int((status["completed"] / status["total"]) * 100)
+                        msg += f" {pct}%"
+                    
+                    if msg != last_status:
+                        await broadcast_log(ws_manager, node.id, f"📥 {msg}", "INFO")
+                        last_status = msg
+                
+                await broadcast_log(ws_manager, node.id, f"✓ Model '{model}' pulled successfully. Retrying generation...", "SUCCESS")
+                
+                # Retry generation
+                chunks = []
+                chunk_count = 0
+                async for chunk in ollama.generate(
+                    model=model,
+                    prompt=prompt,
+                    stream=True,
+                    num_ctx=num_ctx,
+                    options=options,
+                    keep_alive=f"{node.data.keep_alive}m"
+                    if hasattr(node.data, "keep_alive") and node.data.keep_alive is not None
+                    else "5m",
+                ):
+                    chunks.append(chunk)
+                    chunk_count += 1
+                    if chunk_count % 10 == 0:
+                        await broadcast_log(
+                            ws_manager,
+                            node.id,
+                            f"   [Stream] Generated {len(chunks)} tokens...",
+                        )
+            except Exception as pull_err:
+                await broadcast_log(ws_manager, node.id, f"✗ Failed to pull model '{model}': {pull_err}", "ERROR")
+                return f"[Error: Failed to pull model: {pull_err}]"
 
         full_response = "".join(chunks)
         await broadcast_log(
@@ -419,19 +477,22 @@ async def execute_email_trigger_node(node: DagNode, ws_manager) -> str:
             imap_port=node.data.imap_port,
             email_address=node.data.email_address,
             app_password=node.data.app_password,
+            email_count=node.data.email_count or "1"
         )
         results = await poll_inbox_once(config)
         if not results:
             await broadcast_log(ws_manager, node.id, "No unread emails found.", "WARN")
             return ""
 
-        # Return the newest email
-        email = results[-1]
-        content = (
-            f"From: {email['sender']}\nSubject: {email['subject']}\n\n{email['body']}"
-        )
+        # Format all fetched emails
+        formatted_emails = []
+        for i, email in enumerate(results, 1):
+            formatted_emails.append(f"Email {i}:\nFrom: {email['sender']}\nSubject: {email['subject']}\n\n{email['body']}")
+        
+        content = "\n\n---\n\n".join(formatted_emails)
+        
         await broadcast_log(
-            ws_manager, node.id, f"✓ Read email from {email['sender']}", "SUCCESS"
+            ws_manager, node.id, f"✓ Read {len(results)} email(s)", "SUCCESS"
         )
         return content
     except Exception as e:

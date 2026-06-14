@@ -9,6 +9,7 @@ import React, { useEffect, useState } from 'react';
 import useFlowStore from '@/store/flowStore';
 import useThemeStore from '@/store/themeStore';
 import { NodeType } from '@/types/dag';
+import { BackendFailsafe } from '@/components/ui/BackendFailsafe';
 
 interface NodePaletteItemProps {
   type: NodeType;
@@ -296,6 +297,11 @@ export default function Sidebar() {
 
         {/* Theme toggle */}
         <ThemeToggle />
+        
+        {/* Failsafe button */}
+        <div className="pt-2 border-t border-[var(--nf-border)]">
+          <BackendFailsafe />
+        </div>
       </div>
 
       {/* ── Status bar ── */}

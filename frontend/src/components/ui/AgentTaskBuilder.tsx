@@ -52,7 +52,7 @@ function TaskItem({ id, task, idx, updateAiTask, removeAiTask, canRemove, showDe
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 50 : 10,
+    zIndex: isDragging ? 50 : (showModelList ? 40 : 10 - idx),
     opacity: isDragging ? 0.8 : 1,
   };
 
@@ -239,7 +239,7 @@ export function AgentTaskBuilder() {
       .then(data => {
         if (data.installed) setInstalledModels(data.installed);
       })
-      .catch(err => console.error("Failed to fetch installed models:", err));
+      .catch(() => {});
   }, [backendUrl]);
 
   const requestInstall = (modelId: string, taskIndex: number) => {
@@ -295,21 +295,22 @@ export function AgentTaskBuilder() {
     if (toastTimer) clearTimeout(toastTimer);
   };
 
-  if (step < 2) return null;
-
   const isActive = step === 2;
+  const isPast = step > 2;
+
+  if (!isActive && !isPast) return null;
 
   if (!isActive) {
     return (
-      <div className="mb-6 p-4 rounded-xl border border-[var(--nf-border)] bg-transparent opacity-80 hover:opacity-100 transition-opacity flex items-center justify-between group">
+      <div className="mb-6 p-4 rounded-xl border border-[var(--nf-border)] bg-transparent opacity-80 hover:opacity-100 transition-opacity flex items-center justify-between group cursor-pointer" onClick={() => setStep(2)}>
         <div className="flex items-center gap-4">
           <div className="w-8 h-8 rounded-full bg-[var(--nf-bg-surface)] border border-[var(--nf-border)] flex items-center justify-center text-[var(--nf-text-muted)]">
             <Bot size={14} className="text-[var(--nf-accent-purple)]" />
           </div>
           <div>
             <h4 className="text-xs font-bold text-[var(--nf-text-muted)] uppercase tracking-wider">Step 2: AI Processing</h4>
-            <p className="text-sm font-semibold text-[var(--nf-text-primary)]">
-              {aiTasks.length} {aiTasks.length === 1 ? 'task' : 'tasks'} configured
+            <p className="text-sm font-medium text-[var(--nf-text-primary)]">
+              {aiTasks.length} Task{aiTasks.length !== 1 ? 's' : ''} Configured
             </p>
           </div>
         </div>

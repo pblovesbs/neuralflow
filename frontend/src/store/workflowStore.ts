@@ -61,8 +61,16 @@ interface WorkflowState {
   setEmail: (email: string) => void;
   appPassword: string;
   setAppPassword: (pw: string) => void;
+  itemCount: string;
+  setItemCount: (count: string) => void;
   sourcePath: string;
   setSourcePath: (path: string) => void;
+
+  // Multi-step AI Routing
+  topology: 'pipeline_final' | 'pipeline_all' | 'parallel';
+  setTopology: (topology: 'pipeline_final' | 'pipeline_all' | 'parallel') => void;
+  outputStrategy: 'single_file' | 'separate_files' | 'separate_folders';
+  setOutputStrategy: (strategy: 'single_file' | 'separate_files' | 'separate_folders') => void;
 
   // AI Tasks & Undo
   aiTasks: AiTask[];
@@ -151,7 +159,10 @@ export const useWorkflowStore = create<WorkflowState>()(
             triggerType: state.triggerType,
             email: state.email,
             appPassword: state.appPassword,
+            itemCount: state.itemCount,
             sourcePath: state.sourcePath,
+            topology: state.topology,
+            outputStrategy: state.outputStrategy,
             aiTasks: state.aiTasks,
             scheduleEnabled: state.scheduleEnabled,
             schedulePreset: state.schedulePreset,
@@ -195,6 +206,9 @@ export const useWorkflowStore = create<WorkflowState>()(
           automationName: template.automationName,
           triggerType: template.triggerType,
           email: template.email || '',
+          itemCount: '1',
+          topology: 'pipeline_final',
+          outputStrategy: 'single_file',
           aiTasks: template.aiTasks,
           targetPath: template.targetPathHint || '',
           step: 1,
@@ -221,8 +235,15 @@ export const useWorkflowStore = create<WorkflowState>()(
       setEmail: (email) => set({ email }),
       appPassword: '',
       setAppPassword: (appPassword) => set({ appPassword }),
+      itemCount: '1',
+      setItemCount: (itemCount) => set({ itemCount }),
       sourcePath: '',
       setSourcePath: (sourcePath) => set({ sourcePath }),
+
+      topology: 'pipeline_final',
+      setTopology: (topology) => set({ topology }),
+      outputStrategy: 'single_file',
+      setOutputStrategy: (outputStrategy) => set({ outputStrategy }),
 
       aiTasks: [{ ...initialAiTask }],
       setAiTasks: (aiTasks) => {
@@ -321,7 +342,10 @@ export const useWorkflowStore = create<WorkflowState>()(
         triggerType: null,
         email: '',
         appPassword: '',
+        itemCount: '1',
         sourcePath: '',
+        topology: 'pipeline_final',
+        outputStrategy: 'single_file',
         aiTasks: [{ ...initialAiTask }],
         targetPath: '',
         scheduleEnabled: false,

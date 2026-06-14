@@ -108,6 +108,42 @@ export default function EmailTriggerNode({ id, data, selected }: FlowNode) {
           />
         </div>
 
+        <div>
+          <label className="nf-label">Number of Emails to Read</label>
+          <div className="flex gap-2">
+            <select
+              value={['1', '3', '5', '10', 'all'].includes((data.email_count as string || '1').toLowerCase()) ? (data.email_count as string || '1').toLowerCase() : 'custom'}
+              onChange={(e) => {
+                if (e.target.value === 'custom') {
+                  updateField('email_count', '15');
+                } else {
+                  updateField('email_count', e.target.value);
+                }
+              }}
+              className="nf-input"
+            >
+              <option value="1">1 (Newest)</option>
+              <option value="3">3</option>
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="all">All (up to 50)</option>
+              <option value="custom">Custom...</option>
+            </select>
+            
+            {!['1', '3', '5', '10', 'all'].includes((data.email_count as string || '1').toLowerCase()) && (
+              <input 
+                type="number" 
+                min="1"
+                max="50"
+                value={data.email_count as string || '1'}
+                onChange={(e) => updateField('email_count', e.target.value)}
+                className="nf-input w-20"
+                placeholder="Count"
+              />
+            )}
+          </div>
+        </div>
+
         {/* Toggle Advanced */}
         <button 
           onClick={() => setShowAdvanced(!showAdvanced)}

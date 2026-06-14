@@ -45,6 +45,9 @@ class NodeData(BaseModel):
     target_path: Optional[str] = Field(
         None, description="File system path for trigger/action."
     )
+    item_count: Optional[str] = Field(
+        "1", description="Number of items to read for trigger nodes."
+    )
     keep_alive: Optional[int] = Field(5, description="Minutes to keep model in VRAM.")
     quantization: Optional[str] = Field("q4_K_M", description="Quantization to use.")
     num_ctx: Optional[int] = Field(4096, description="Context window size.")
@@ -69,6 +72,9 @@ class NodeData(BaseModel):
         None, description="App-specific password (not stored server-side)."
     )
     poll_interval: Optional[int] = Field(60, description="Polling interval in seconds.")
+    email_count: Optional[str] = Field(
+        "1", description="Number of emails to read (e.g., '1', '5', 'all')"
+    )
 
     # ── Webhook Trigger ───────────────────────────────
     webhook_id: Optional[str] = Field(

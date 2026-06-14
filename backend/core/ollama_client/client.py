@@ -139,6 +139,38 @@ class OllamaClient:
                 "Ensure Ollama is running: `ollama serve`"
             )
 
+    async def pull_model(self, model: str) -> AsyncGenerator[dict, None]:
+        """
+        Pull a model from the Ollama registry, yielding status progress dicts.
+
+        Args:
+            model: The model name to pull (e.g. 'gemma3:1b').
+
+        Yields:
+            Parsed JSON dicts representing the pull progress.
+        """
+        try:
+            async with self.client.stream(
+                "POST",
+                f"{self.base_url}/api/pull",
+                json={"name": model, "stream": True},
+                timeout=None,  # Pulling can take a very long time
+            ) as response:
+                response.raise_for_status()
+
+                async for line in response.aiter_lines():
+                    if line.strip():
+                        try:
+                            yield json.loads(line)
+                        except json.JSONDecodeError:
+                            continue
+
+        except httpx.ConnectError:
+            raise OllamaConnectionError(
+                f"Cannot connect to Ollama at {self.base_url}. "
+                "Ensure Ollama is running: `ollama serve`"
+            )
+
     async def unload_model(self, model: str) -> None:
         """
         Explicitly unload a model from Ollama's VRAM by setting keep_alive to 0.
