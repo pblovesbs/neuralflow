@@ -130,3 +130,38 @@ export interface FlowState {
   backendConnected: boolean;
   ollamaConnected: boolean;
 }
+
+// ─── Resilience & Feedback Types ────────────────────────────────────
+
+export type ResilienceEventType =
+  | 'vram_serialized'
+  | 'ram_guardrail_paused'
+  | 'model_auto_pulled'
+  | 'resumed_from_cache'
+  | 'context_pruned';
+
+export interface ResilienceEvent {
+  event_type: ResilienceEventType;
+  node_id: string;
+  message: string;
+  timestamp: string;
+}
+
+export interface FeedbackPrompt {
+  type: 'feedback_prompt';
+  workflow_id: string;
+  status: string;
+  resilience_events: ResilienceEvent[];
+}
+
+export type RecoveryAction = 'retry' | 'edit' | 'skip' | 'whitelist' | 'rewrite' | 'flag';
+
+export interface RecoveryRequiredPrompt {
+  type: 'recovery_required';
+  workflow_id: string;
+  node_id: string;
+  reason: string;
+  violation?: { module_name: string; message: string };
+  original_output?: string;
+}
+

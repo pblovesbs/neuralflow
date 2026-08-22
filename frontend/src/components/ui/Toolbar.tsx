@@ -12,7 +12,7 @@ import useModeStore from '@/store/modeStore';
 import useFlowStore from '@/store/flowStore';
 import SetupModal from './SetupModal';
 import PermissionModal, { PermissionType } from './PermissionModal';
-import { ArrowLeft, ArrowRight, FlaskConical, ChevronDown, Save, Trash2, Play, Square } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FlaskConical, ChevronDown, Save, Trash2, Play, Square, Home, PowerOff, Loader2 } from 'lucide-react';
 
 export default function Toolbar() {
   const router = useRouter();
@@ -43,6 +43,26 @@ export default function Toolbar() {
   const [showRamWarning, setShowRamWarning] = useState(false);
   const [explicitBypass, setExplicitBypass] = useState(false);
   const [permissionsQueue, setPermissionsQueue] = useState<{ type: PermissionType; detail: string; node_id: string }[]>([]);
+  const [isKillingAI, setIsKillingAI] = useState(false);
+
+  const handleHome = () => {
+    document.cookie = 'nf-mode=;path=/;max-age=0;samesite=lax';
+    setMode(null);
+    router.push('/');
+  };
+
+  const handleKillAI = async () => {
+    setIsKillingAI(true);
+    try {
+      await fetch('http://localhost:8000/api/system/kill-ai', { method: 'POST' });
+      useFlowStore.getState().showAiKilledToast("AI execution forcefully terminated and memory freed.");
+      useFlowStore.getState().stopWorkflow();
+    } catch (e) {
+      console.error('Failed to kill AI:', e);
+    } finally {
+      setIsKillingAI(false);
+    }
+  };
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -236,14 +256,14 @@ export default function Toolbar() {
       )}
 
       <div
-        className="h-12 flex items-center justify-between px-4 shrink-0 transition-colors duration-300"
+        className="min-h-[3rem] py-2 h-auto flex flex-wrap lg:flex-nowrap items-center justify-between gap-y-3 px-4 shrink-0 transition-colors duration-300 w-full"
         style={{
           background: 'var(--nf-bg-toolbar)',
           borderBottom: '1px solid var(--nf-border)',
         }}
       >
         {/* Left: Status & Navigation */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
           {/* Back/Forward Navigation */}
           <div className="flex items-center gap-1 border-r border-[var(--nf-border)] pr-3">
             <button 
@@ -351,7 +371,7 @@ export default function Toolbar() {
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-start lg:justify-end gap-2 w-full lg:w-auto mt-2 lg:mt-0">
           {showSetup && <SetupModal onClose={() => setShowSetup(false)} />}
           
           <button
@@ -360,6 +380,18 @@ export default function Toolbar() {
             style={{ color: 'var(--nf-accent-purple)' }}
           >
             ✨ Hardware Setup
+          </button>
+
+          <div className="w-px h-4 bg-white/10 mx-1" />
+
+          <button 
+            onClick={handleHome}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all duration-200"
+            style={{ color: 'var(--nf-text-dim)' }}
+            title="Return to Welcome Screen"
+          >
+            <Home size={12} />
+            Home
           </button>
 
           <div className="w-px h-4 bg-white/10 mx-1" />
@@ -433,6 +465,18 @@ export default function Toolbar() {
               Force Start
             </button>
           )}
+
+          <div className="w-px h-4 bg-white/10 mx-1" />
+
+          <button
+            onClick={handleKillAI}
+            disabled={isKillingAI}
+            className="px-3 py-1.5 rounded-lg text-[11px] font-semibold tracking-wide transition-all duration-300 ease-out text-red-500 bg-red-500/10 hover:bg-red-500/20 disabled:opacity-50 flex items-center gap-1.5"
+            title="Force Stop AI and Free Memory"
+          >
+            {isKillingAI ? <Loader2 size={12} className="animate-spin" /> : <PowerOff size={12} />}
+            Kill AI
+          </button>
 
           <button
             id="deploy-button"

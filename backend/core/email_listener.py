@@ -142,10 +142,23 @@ def fetch_unread_emails(config: EmailConfig) -> list[dict]:
 async def poll_inbox_once(config: EmailConfig) -> list[dict]:
     """
     Async wrapper — runs the blocking IMAP fetch in a thread pool executor
-    so it never blocks the FastAPI event loop.
+    with exponential backoff for network timeouts.
     """
     loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, fetch_unread_emails, config)
+    max_retries = 3
+    base_delay = 2
+
+    for attempt in range(max_retries):
+        try:
+            return await loop.run_in_executor(None, fetch_unread_emails, config)
+        except Exception as e:
+            if attempt == max_retries - 1:
+                raise
+            delay = base_delay * (2 ** attempt)
+            print(f"IMAP fetch failed: {e}. Retrying in {delay} seconds...")
+            await asyncio.sleep(delay)
+    
+    return []
 
 
 async def test_imap_connection(config: EmailConfig) -> dict:

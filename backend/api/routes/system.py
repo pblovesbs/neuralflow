@@ -1,154 +1,129 @@
-"""
-System API routes — hardware native utilities.
-"""
+import asyncio
+import os
+import signal
+import shutil
+import httpx
+from fastapi import APIRouter, HTTPException
 
-from __future__ import annotations
+router = APIRouter(prefix="/api/system", tags=["System"])
 
-import subprocess
-from typing import Optional
-from fastapi import APIRouter
-from pydantic import BaseModel
+OLLAMA_BASE_URL = "http://localhost:11434"
 
-router = APIRouter()
+class OllamaManager:
+    def __init__(self):
+        self._process: asyncio.subprocess.Process | None = None
+    
+    async def start(self):
+        if self._process and self._process.returncode is None:
+            return  # Already running
+            
+        ollama_bin = shutil.which("ollama")
+        if not ollama_bin:
+            raise RuntimeError("Ollama binary not found in system PATH. Install from https://ollama.com")
+            
+        self._process = await asyncio.create_subprocess_exec(
+            ollama_bin, "serve",
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL,
+            start_new_session=True
+        )
+    
+    async def stop(self):
+        if self._process and self._process.returncode is None:
+            # SIGTERM first — graceful
+            try:
+                os.killpg(os.getpgid(self._process.pid), signal.SIGTERM)
+                await asyncio.wait_for(self._process.wait(), timeout=5.0)
+            except asyncio.TimeoutError:
+                # Only SIGKILL if it refuses to stop
+                try:
+                    os.killpg(os.getpgid(self._process.pid), signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+            except ProcessLookupError:
+                pass
+            finally:
+                self._process = None
+        else:
+            # Fallback: kill any system-wide Ollama process we didn't spawn.
+            # This handles the common case where the user started Ollama before NeuralFlow.
+            try:
+                proc = await asyncio.create_subprocess_exec(
+                    "pkill", "-f", "ollama",
+                    stdout=asyncio.subprocess.DEVNULL,
+                    stderr=asyncio.subprocess.DEVNULL,
+                )
+                await asyncio.wait_for(proc.wait(), timeout=5.0)
+            except Exception:
+                pass  # Best-effort
+            self._process = None
 
+ollama_manager = OllamaManager()
 
-@router.get("/api/system/file-picker")
-async def pick_file():
-    """Opens macOS native file picker dialog and returns absolute path."""
+@router.get("/ollama-status")
+async def get_ollama_status():
+    """Poll endpoint to verify if Ollama service is responsive."""
+    async with httpx.AsyncClient(timeout=2.0) as client:
+        try:
+            res = await client.get(f"{OLLAMA_BASE_URL}/api/version")
+            if res.status_code == 200:
+                return {"status": "online", "version": res.json().get("version")}
+        except Exception:
+            pass
+    return {"status": "offline"}
+
+@router.post("/start-ollama")
+async def start_ollama():
+    """Spawns Ollama background service in a cross-platform detached process."""
     try:
-        cmd = ["osascript", "-e", "POSIX path of (choose file)"]
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        return {"path": result.stdout.strip()}
-    except subprocess.CalledProcessError:
-        return {"path": ""}
-
-
-@router.get("/api/system/folder-picker")
-async def pick_folder():
-    """Opens macOS native folder picker dialog and returns absolute path."""
-    try:
-        cmd = ["osascript", "-e", "POSIX path of (choose folder)"]
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        return {"path": result.stdout.strip()}
-    except subprocess.CalledProcessError:
-        return {"path": ""}
-
-
-@router.get("/api/system/save-file-picker")
-async def pick_save_file():
-    """Opens macOS native save file dialog and returns absolute path."""
-    try:
-        cmd = ["osascript", "-e", "POSIX path of (choose file name)"]
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        return {"path": result.stdout.strip()}
-    except subprocess.CalledProcessError:
-        return {"path": ""}
-
-
-# ─── Clipboard Monitor Control ───────────────────────────────────────────────
-
-
-class ClipboardFilterRequest(BaseModel):
-    workflow_id: str
-    filter_text: Optional[str] = ""
-    regex: Optional[bool] = False
-
-
-@router.post("/api/clipboard/register")
-async def register_clipboard_filter(req: ClipboardFilterRequest):
-    """Register a workflow to be triggered by clipboard changes."""
-    from core.clipboard_monitor import register_filter
-
-    register_filter(req.workflow_id, req.filter_text or "", bool(req.regex))
-    return {
-        "status": "success",
-        "message": f"Registered clipboard monitor for {req.workflow_id}",
-    }
-
-
-@router.post("/api/clipboard/unregister/{workflow_id}")
-async def unregister_clipboard_filter(workflow_id: str):
-    """Remove a workflow from clipboard monitoring."""
-    from core.clipboard_monitor import unregister_filter
-
-    unregister_filter(workflow_id)
-    return {"status": "success"}
-
-
-# ─── Email Listener Control ──────────────────────────────────────────────────
-class EmailTestRequest(BaseModel):
-    imap_server: str
-    imap_port: int
-    email_address: str
-    app_password: str
-
-
-@router.post("/api/email/test-connection")
-async def test_email_connection(req: EmailTestRequest):
-    """Test IMAP connectivity."""
-    from core.email_listener import EmailConfig, test_imap_connection
-
-    config = EmailConfig(
-        imap_server=req.imap_server,
-        imap_port=req.imap_port,
-        email_address=req.email_address,
-        app_password=req.app_password,
-    )
-    result = await test_imap_connection(config)
-    return result
-
-
-# ─── Cron Scheduler Control ──────────────────────────────────────────────────
-class ScheduleRequest(BaseModel):
-    workflow_id: str
-    cron_expression: Optional[str] = None
-    interval_seconds: Optional[int] = None
-
-
-@router.post("/api/schedule/add")
-async def add_schedule(req: ScheduleRequest):
-    from core.cron_scheduler import add_job
-
-    try:
-        add_job(req.workflow_id, req.cron_expression, req.interval_seconds)
-        return {"status": "success", "message": f"Scheduled {req.workflow_id}"}
+        await ollama_manager.start()
+        return {"status": "starting", "message": "Ollama service start signal sent."}
+    except RuntimeError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        raise HTTPException(status_code=500, detail=f"Failed to start Ollama: {str(e)}")
 
-
-@router.post("/api/schedule/remove/{workflow_id}")
-async def remove_schedule(workflow_id: str):
-    from core.cron_scheduler import remove_job
-
-    remove_job(workflow_id)
-    return {"status": "success"}
-
-
-# ─── Hardware Telemetry ──────────────────────────────────────────────────────
-
-@router.get("/api/system/ram")
-async def get_system_ram():
-    from core.config import settings
+async def _run_osascript(prompt_cmd: str) -> str | None:
+    """Helper to run a macOS native file picker dialog."""
+    cmd = [
+        "osascript",
+        "-e", 'tell application "System Events" to activate',
+        "-e", f'try\nset thePath to POSIX path of ({prompt_cmd})\nreturn thePath\nend try'
+    ]
     try:
-        import psutil
-        vm = psutil.virtual_memory()
-        available_gb = vm.available / (1024**3)
-        return {
-            "status": "success",
-            "available_gb": available_gb,
-            "safe_limit": settings.safe_ram_gb_limit,
-            "total": vm.total,
-            "available": vm.available,
-            "free": vm.available,
-            "percent": vm.percent
-        }
-    except ImportError:
-        return {
-            "status": "error",
-            "message": "psutil not installed",
-            "total": 0,
-            "available": 0,
-            "free": 0,
-            "percent": 0
-        }
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        stdout, _ = await process.communicate()
+        if process.returncode == 0 and stdout.decode().strip():
+            return stdout.decode().strip()
+    except Exception as e:
+        print(f"File picker error: {e}")
+    return None
+
+@router.get("/file-picker")
+async def file_picker():
+    path = await _run_osascript('choose file with prompt "Select a file"')
+    return {"path": path}
+
+@router.get("/folder-picker")
+async def folder_picker():
+    path = await _run_osascript('choose folder with prompt "Select a folder"')
+    return {"path": path}
+
+@router.get("/save-file-picker")
+async def save_file_picker():
+    path = await _run_osascript('choose file name with prompt "Save file as"')
+    return {"path": path}
+
+@router.post("/kill-ai")
+async def kill_ai():
+    """Gracefully kill the Ollama engine to free up memory."""
+    try:
+        await ollama_manager.stop()
+        return {"status": "ok", "message": "AI engine terminated"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 

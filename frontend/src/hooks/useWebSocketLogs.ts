@@ -45,10 +45,28 @@ export function useWebSocketLogs(wsUrl: string) {
             setExecutionStatus('completed');
             ws.close();
           }
-          if (data.level === 'ERROR' || data.message.includes('FAILED')) {
+          // Bug 5 fix: Only close WS on fatal workflow-terminating errors,
+          // not on non-fatal ERROR logs like "psutil not installed" or "fpdf2 not installed"
+          if (data.message.includes('FAILED') || data.message.includes('Fatal error')) {
             if (data.node_id && data.node_id !== 'system') updateNodeStatus(data.node_id, 'error');
             setExecutionStatus('failed');
             ws.close();
+          }
+        }
+
+        // Handle resilience feedback prompt (no message field — separate event type)
+        if (data && data.type === 'feedback_prompt') {
+          const state = useWorkflowStore.getState();
+          if (typeof state.setFeedbackPrompt === 'function') {
+            state.setFeedbackPrompt(data);
+          }
+        }
+
+        // Handle HITL recovery prompt
+        if (data && data.type === 'recovery_required') {
+          const state = useWorkflowStore.getState();
+          if (typeof state.setRecoveryPrompt === 'function') {
+            state.setRecoveryPrompt(data);
           }
         }
       } catch (e) {

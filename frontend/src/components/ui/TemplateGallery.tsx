@@ -36,8 +36,10 @@ const TEMPLATES = [
 ];
 
 export default function TemplateGallery() {
-  const loadTemplate = useFlowStore((s) => s.loadTemplate);
-
+  // const loadTemplate = useFlowStore((s) => s.loadTemplate);
+  const loadTemplate = (id: string) => {
+    console.warn('loadTemplate not implemented for Builder Mode yet', id);
+  };
   return (
     <div
       className="absolute inset-0 z-50 flex flex-col items-center justify-center"

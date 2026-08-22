@@ -1,0 +1,3136 @@
+=========================================
+NEURALFLOW PROJECT CONTEXT
+=========================================
+
+--- DIRECTORY STRUCTURE ---
+backend/
+  api/
+    routes/
+  core/
+    graph_parser/
+    ollama_client/
+  tests/
+frontend/
+  public/
+  src/
+    app/
+    components/
+      nodes/
+      ui/
+    config/
+    hooks/
+    store/
+    types/
+
+
+=========================================
+FILE: stack.txt
+=========================================
+
+NEURALFLOW: THE ULTIMATE SOLO DEVELOPER MASTERCLASS ROADMAP
+===========================================================
+This is a highly curated, deeply detailed curriculum designed to take you from zero to being able to build a complex, real-time, AI-driven application like NeuralFlow entirely by yourself.
+
+-----------------------------------------------------------
+PHASE 1: THE FOUNDATIONAL PILLARS (Frontend & Backend Basics)
+-----------------------------------------------------------
+To build anything, you must first master the raw languages before touching frameworks.
+
+1. HTML5 (Semantic Architecture)
+   - What to learn: The Document Object Model (DOM), semantic tags (<main>, <section>, <nav>), and how browsers render elements.
+   - Why for NeuralFlow: It forms the structural skeleton of the presentation layer and the web app.
+
+2. Vanilla CSS3 (Advanced Styling & Aesthetics)
+   - What to learn: 
+     * Flexbox & CSS Grid: Absolutely critical for the complex layouts of the Canvas UI, sidebar, and toolbars.
+     * CSS Variables (--color-primary): Used to create the dark mode theme across the app.
+     * Keyframe Animations & Transitions: Used for the "throbbing" buttons, the scrolling terminal text, and the glass-morphism (backdrop-filter: blur) effects.
+     * Responsive Design: Media queries (@media) for making the app work on mobile devices.
+
+3. Advanced JavaScript (ES6+)
+   - What to learn: 
+     * Arrow functions, destructuring, template literals, and the spread operator.
+     * The Event Loop and Asynchronous Programming: Promises, `async/await`, and `fetch()`. This is non-negotiable for communicating with the backend.
+     * Array manipulation: `map()`, `filter()`, `reduce()` (Used constantly when rendering node lists or execution logs).
+
+4. Python 3.x (Core Backend Logic)
+   - What to learn: 
+     * Dictionaries, Lists, Sets, and Tuples.
+     * Object-Oriented Programming (OOP): Classes and inheritance.
+     * Exception Handling (`try/except` blocks) to prevent the server from crashing during unpredictable AI generation.
+     * Virtual Environments (`venv`) to keep project dependencies isolated from your operating system.
+
+-----------------------------------------------------------
+PHASE 2: FRONTEND MASTERY (Building the Interactive Canvas)
+-----------------------------------------------------------
+NeuralFlow's interface is highly interactive. Standard HTML/JS isn't enough; you need modern component-based architecture.
+
+5. TypeScript (Bulletproofing JavaScript)
+   - What to learn: Interfaces, custom types, Enums, and Generics.
+   - Why for NeuralFlow: When passing complex "Node" and "Edge" data structures between functions, TypeScript catches errors before the code even runs, saving hours of debugging and preventing catastrophic UI crashes.
+
+6. React.js (Component Architecture)
+   - What to learn: 
+     * Functional Components and Props.
+     * React Hooks: `useState` (local state), `useEffect` (side effects like API calls), `useRef` (accessing DOM elements directly, heavily used for auto-scrolling terminal logs), and `useCallback` (optimizing rendering performance).
+     * Component lifecycles and preventing unnecessary re-renders.
+
+7. Zustand (Global State Management)
+   - What to learn: Creating global state stores.
+   - Why for NeuralFlow: React's default state management is messy for large apps. Zustand (`flowStore.ts`) holds the mathematical coordinates and state of every single node, edge, and execution log on the canvas globally. This allows the sidebar, canvas, and toolbar to all read and update the same data instantly without complex prop-drilling.
+
+8. React Flow (The Visual Engine)
+   - What to learn: Nodes, Edges, Backgrounds, Controls, and the MiniMap.
+   - Why for NeuralFlow: This is the core 3rd-party library that powers the visual drag-and-drop canvas. You must learn how to design "Custom Nodes" (like NeuralFlow's AgentNode with the play button and active status indicators) and "Custom Edges" (the glowing, animated lines connecting nodes).
+
+9. Next.js 14/15 (The Full-Stack Framework)
+   - What to learn: 
+     * The "App Router" architecture.
+     * Client Components (`"use client"`) vs Server Components.
+     * Next.js API Routes (creating backend-like endpoints right inside the frontend for simple tasks).
+
+-----------------------------------------------------------
+PHASE 3: BACKEND ENGINEERING (The High-Performance Server)
+-----------------------------------------------------------
+The backend handles heavy AI processing. It needs to be fast, asynchronous, and robust.
+
+10. FastAPI (Modern Python Web Framework)
+    - What to learn: 
+      * Routing and Endpoints (`@app.get`, `@app.post`).
+      * Pydantic Models: Used to strictly define what JSON data the frontend must send (e.g., forcing a strictly formatted `NodeExecutionRequest`).
+      * CORS (Cross-Origin Resource Sharing) middleware to securely allow the frontend domain to talk to the backend domain.
+
+11. Advanced Asynchronous Python (`asyncio`)
+    - What to learn: The event loop, `async def`, `await`, and `asyncio.sleep`.
+    - Why for NeuralFlow: If a local AI model takes 10 seconds to generate a response, a synchronous server would freeze entirely for those 10 seconds. `asyncio` allows the server to juggle other requests (like UI telemetry pings) seamlessly while waiting for the heavy AI calculation to finish in the background.
+
+12. System & OS Interfacing (`psutil`)
+    - What to learn: Querying CPU usage, RAM allocation, and thread counts.
+    - Why for NeuralFlow: This specific library powers the live "Hardware Telemetry" panel in the UI, proving that the execution is local and visually showing resource drain.
+
+-----------------------------------------------------------
+PHASE 4: REAL-TIME COMMUNICATION (The Nervous System)
+-----------------------------------------------------------
+Standard HTTP APIs are request/response (you ask, it answers). NeuralFlow requires a live, continuous, unbroken stream of data.
+
+13. WebSockets (Bidirectional Streaming)
+    - What to learn: 
+      * Frontend: The native JavaScript `WebSocket` API (connecting, sending messages, listening to the `onmessage` event).
+      * Backend: FastAPI `WebSocket` endpoints and active connection managers.
+    - Why for NeuralFlow: When an AI node is executing, it uses WebSockets to push live log data back to the React frontend instantly, character-by-character. This is what powers the real-time terminal window effect instead of waiting for the entire process to finish before showing anything.
+
+-----------------------------------------------------------
+PHASE 5: AI INTEGRATION & SECURITY (The "Brain" & The "Shield")
+-----------------------------------------------------------
+This is what makes the application intelligent—and prevents it from destroying your computer.
+
+14. Local LLM Interfacing (Ollama)
+    - What to learn: 
+      * The Ollama REST API documentation.
+      * Prompt Engineering: Writing unbreakable system prompts to force the AI to return exactly what you want (e.g., mathematically forcing it to return raw Python code without any markdown formatting or pleasantries).
+      * Streaming Responses: Handling chunked HTTP responses so the UI updates smoothly as the AI "types" out its thoughts.
+
+15. Abstract Syntax Trees (AST) & Code Sandboxing (CRITICAL)
+    - What to learn: Python's built-in `ast` module.
+    - Why for NeuralFlow: The AI dynamically generates Python code, and NeuralFlow executes it directly on your machine. If the AI hallucinates a command to format your hard drive or delete system files (`os.system("rm -rf /")`), it would be disastrous. You must learn how to parse the AI's text into an AST structure and explicitly block dangerous imports (`os`, `sys`, `subprocess`) before the execution engine is ever allowed to run it.
+    - What to learn: The `exec()` function in Python, combined with strictly restricted global and local variable namespaces to create a secure "Sandbox".
+
+-----------------------------------------------------------
+HOW TO EXECUTE THIS ROADMAP
+-----------------------------------------------------------
+Do not jump around. Software development compounds.
+
+- STEP 1 (Weeks 1-4): Build a basic responsive website using HTML/CSS/JS. Build a basic Python script that reads and writes text files.
+- STEP 2 (Weeks 5-8): Build a standard React App. Learn to fetch data from an open API. Integrate Zustand.
+- STEP 3 (Weeks 9-12): Build a Next.js frontend featuring a basic drag-and-drop React Flow canvas.
+- STEP 4 (Weeks 13-16): Build a FastAPI backend. Connect it to your Next.js app. Make the frontend send a request and the backend send a response.
+- STEP 5 (Weeks 17-20): Implement WebSockets. Connect FastAPI to the local Ollama instance. Build the AST sandbox. Tie everything together into the final NeuralFlow architecture.
+
+
+=========================================
+FILE: backend/main.py
+=========================================
+
+"""
+NeuralFlow Backend — FastAPI entry point.
+Mounts all API routes, configures CORS, and manages application lifecycle.
+"""
+
+from __future__ import annotations
+
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from api.routes import execute, models, websocket, system, webhooks, storage, wizard
+from core.ollama_manager import auto_start_ollama
+from core.cron_scheduler import start_scheduler, stop_scheduler
+from core.clipboard_monitor import start_monitor, stop_monitor
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifecycle — auto-starts Ollama if needed."""
+    print("⚡ NeuralFlow Backend starting...")
+    print("   API:       http://localhost:8000")
+    print("   WebSocket: ws://localhost:8000/ws/logs")
+    print("   Docs:      http://localhost:8000/docs")
+    print("")
+
+    # Auto-start Ollama so users don't need to do anything
+    print("🤖 Checking Ollama...")
+    result = await auto_start_ollama()
+    status_icons = {
+        "running": "✅",
+        "started": "🚀",
+        "not_installed": "⚠️",
+        "failed": "❌",
+    }
+    icon = status_icons.get(result["status"], "❓")
+    print(f"   {icon} {result['message']}")
+    print("")
+
+    # Proactive health check — notify frontend if Ollama is unreachable
+    try:
+        import httpx
+        from api.routes.websocket import manager as ws_manager
+
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            resp = await client.get("http://127.0.0.1:11434/api/tags")
+            if resp.status_code != 200:
+                raise ConnectionError("Ollama not responding")
+        print("   ✅ Ollama is reachable on port 11434")
+    except Exception:
+        print("   ⚠️  Ollama is unreachable — frontend will be notified")
+        import asyncio
+
+        async def _notify_offline():
+            await asyncio.sleep(2)  # Wait for WS clients to connect
+            await ws_manager.broadcast('{"type": "ollama_offline"}')
+
+        asyncio.create_task(_notify_offline())
+
+    # Start Background Tasks
+    print("⏰ Starting Cron Scheduler...")
+    try:
+        start_scheduler()
+    except Exception as e:
+        print(f"   ⚠️ Failed to start scheduler: {e}")
+
+    print("📋 Starting Clipboard Monitor...")
+    try:
+        start_monitor()
+    except Exception as e:
+        print(f"   ⚠️ Failed to start clipboard monitor: {e}")
+
+    yield
+    print("⚡ NeuralFlow Backend shutting down...")
+    stop_scheduler()
+    stop_monitor()
+
+
+app = FastAPI(
+    title="NeuralFlow Backend",
+    description="Edge-agent orchestration engine with DAG execution and Ollama integration.",
+    version="1.0.0",
+    lifespan=lifespan,
+)
+
+# CORS — allow frontend dev server
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Mount routes
+app.include_router(execute.router, tags=["Execution"])
+app.include_router(models.router, tags=["Models"])
+app.include_router(websocket.router, tags=["WebSocket"])
+app.include_router(system.router, tags=["System"])
+app.include_router(webhooks.router, tags=["Webhooks"])
+app.include_router(storage.router, tags=["Storage"])
+app.include_router(wizard.router, prefix="/api/wizard", tags=["Wizard"])
+
+
+@app.get("/")
+async def root():
+    """Root endpoint — API info."""
+    return {
+        "name": "NeuralFlow Backend",
+        "version": "1.0.0",
+        "endpoints": {
+            "execute": "POST /execute-graph",
+            "models": "GET /api/models",
+            "health": "GET /api/health",
+            "websocket": "WS /ws/logs",
+            "docs": "GET /docs",
+        },
+    }
+
+
+=========================================
+FILE: backend/api/models.py
+=========================================
+
+"""
+Pydantic v2 models — extended for NeuralFlow v3.
+Covers all node types: original Trigger/Agent/Action + 8 new types.
+"""
+
+from __future__ import annotations
+
+from enum import Enum
+from typing import Optional
+
+from pydantic import BaseModel, Field, model_validator, field_validator
+
+
+class NodeType(str, Enum):
+    """All supported node types in the DAG."""
+
+    # ── Original ──────────────────────────────────────
+    TRIGGER = "trigger"
+    AGENT = "agent"
+    ACTION = "action"
+    # ── New Trigger Types ──────────────────────────────
+    EMAIL_TRIGGER = "email_trigger"
+    WEBHOOK_TRIGGER = "webhook_trigger"
+    CRON_TRIGGER = "cron_trigger"
+    CLIPBOARD_TRIGGER = "clipboard_trigger"
+    # ── New Action Types ───────────────────────────────
+    BROWSER_ACTION = "browser_action"
+    SUBPROCESS_ACTION = "subprocess_action"
+    # ── Memory / AI Utility ────────────────────────────
+    MEMORY_STORE = "memory_store"
+    MEMORY_QUERY = "memory_query"
+
+
+class NodeData(BaseModel):
+    """
+    Data payload for any DAG node. Fields are optional; only relevant ones
+    are set per node type.
+    """
+
+    # ── Core ──────────────────────────────────────────
+    model: Optional[str] = Field(None, description="Ollama model ID (agent nodes).")
+    prompt_template: Optional[str] = Field(
+        None, description="Prompt with {{input}} placeholder."
+    )
+    target_path: Optional[str] = Field(
+        None, description="File system path for trigger/action."
+    )
+    item_count: Optional[str] = Field(
+        "1", description="Number of items to read for trigger nodes."
+    )
+    keep_alive: Optional[int] = Field(5, description="Minutes to keep model in VRAM.")
+    quantization: Optional[str] = Field("q4_K_M", description="Quantization to use.")
+    num_ctx: Optional[int] = Field(4096, description="Context window size.")
+    temperature: Optional[float] = Field(0.7, description="Generation temperature.")
+    top_p: Optional[float] = Field(0.9, description="Generation top p.")
+    max_tokens: Optional[int] = Field(None, description="Max generated tokens.")
+    repeat_penalty: Optional[float] = Field(1.1, description="Repeat penalty.")
+    seed: Optional[int] = Field(None, description="Random seed.")
+    stop_sequences: Optional[str] = Field(
+        None, description="Comma separated stop strings."
+    )
+
+    # ── Email Trigger ──────────────────────────────────
+    imap_server: Optional[str] = Field(
+        None, description="IMAP server host (e.g. imap.gmail.com)."
+    )
+    imap_port: Optional[int] = Field(
+        993, description="IMAP port (default 993 for SSL)."
+    )
+    email_address: Optional[str] = Field(None, description="Email address to poll.")
+    app_password: Optional[str] = Field(
+        None, description="App-specific password (not stored server-side)."
+    )
+    poll_interval: Optional[int] = Field(60, description="Polling interval in seconds.")
+    email_count: Optional[str] = Field(
+        "1", description="Number of emails to read (e.g., '1', '5', 'all')"
+    )
+
+    # ── Webhook Trigger ───────────────────────────────
+    webhook_id: Optional[str] = Field(
+        None, description="UUID for the /webhook/{id} endpoint."
+    )
+
+    # ── Cron Trigger ──────────────────────────────────
+    cron_expression: Optional[str] = Field(
+        None, description="Cron expression string (5-field)."
+    )
+    cron_interval_seconds: Optional[int] = Field(
+        None, description="Simple interval in seconds."
+    )
+    cron_label: Optional[str] = Field(
+        None, description="Human-readable label for the schedule."
+    )
+
+    # ── Clipboard Trigger ─────────────────────────────
+    clipboard_filter: Optional[str] = Field(
+        None, description="Keyword or regex filter for clipboard content."
+    )
+    clipboard_enabled: Optional[bool] = Field(
+        False, description="Whether passive clipboard monitoring is active."
+    )
+
+    # ── Browser Action ────────────────────────────────
+    browser_url: Optional[str] = Field(None, description="Target URL to navigate to.")
+    browser_instruction: Optional[str] = Field(
+        None, description="Extraction instruction for the scraped content."
+    )
+    browser_headless: Optional[bool] = Field(
+        True, description="Run browser headlessly."
+    )
+
+    # ── Subprocess Action ─────────────────────────────
+    subprocess_runtime: Optional[str] = Field(
+        "bash", description="Runtime: bash | python3 | node"
+    )
+    subprocess_code: Optional[str] = Field(None, description="Code/command to execute.")
+    output_format: Optional[str] = Field(
+        "Plain Text", description="Format to save output file."
+    )
+
+    # ── Memory ────────────────────────────────────────
+    memory_collection: Optional[str] = Field(
+        "default", description="ChromaDB collection name."
+    )
+    memory_chunk_size: Optional[int] = Field(
+        512, description="Chunk size in characters for ingestion."
+    )
+    memory_top_k: Optional[int] = Field(
+        3, description="Number of top results to retrieve."
+    )
+    memory_inject_mode: Optional[str] = Field(
+        "prepend", description="How to inject memories: prepend | append."
+    )
+
+    @field_validator("email_address")
+    @classmethod
+    def validate_email(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and "@" not in v:
+            raise ValueError("Invalid email address format.")
+        return v
+
+
+class DagNode(BaseModel):
+    """A single node in the DAG workflow."""
+
+    id: str = Field(..., description="Unique node identifier.")
+    type: NodeType = Field(..., description="Node type.")
+    data: NodeData = Field(default_factory=NodeData, description="Node configuration.")  # type: ignore
+
+
+class DagEdge(BaseModel):
+    """A directed edge between two nodes."""
+
+    source: str = Field(..., description="Source node ID.")
+    target: str = Field(..., description="Target node ID.")
+
+
+class DagWorkflow(BaseModel):
+    """
+    Complete DAG workflow payload — the frontend ↔ backend contract.
+    """
+
+    workflow_id: str = Field(..., description="Unique workflow execution ID.")
+    nodes: list[DagNode] = Field(..., min_length=1, description="DAG nodes.")
+    edges: list[DagEdge] = Field(default_factory=list, description="Directed edges.")
+    schedule: Optional[str] = Field(None, description="Optional cron schedule for background execution.")
+    notify_email: Optional[str] = Field(None, description="Optional email to notify on completion.")
+    bypass_ram_check: Optional[bool] = Field(False, description="Bypass the VRAM memory guardrail.")
+
+    @model_validator(mode="after")
+    def validate_edge_references(self) -> "DagWorkflow":
+        """Ensure all edge source/target IDs reference existing nodes."""
+        node_ids = {node.id for node in self.nodes}
+        for edge in self.edges:
+            if edge.source not in node_ids:
+                raise ValueError(
+                    f"Edge source '{edge.source}' does not reference an existing node."
+                )
+            if edge.target not in node_ids:
+                raise ValueError(
+                    f"Edge target '{edge.target}' does not reference an existing node."
+                )
+        return self
+
+
+# ─── Response Models ───────────────────────────────────────────────────────────
+
+
+class ExecutionStatus(str, Enum):
+    STARTED = "started"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class ExecutionResponse(BaseModel):
+    status: ExecutionStatus
+    workflow_id: str
+    message: str = ""
+
+
+class LogEntry(BaseModel):
+    timestamp: str
+    node_id: str
+    level: str = "INFO"
+    message: str
+    raw_traceback: Optional[str] = None
+    free_ram: Optional[int] = None
+    allocated_vram: Optional[int] = None
+
+
+class OllamaModel(BaseModel):
+    name: str
+    size: Optional[str] = None
+    modified_at: Optional[str] = None
+
+
+=========================================
+FILE: backend/api/routes/execute.py
+=========================================
+
+"""
+Execute-graph API route.
+Validates DAG payload, runs topological sort, and executes nodes sequentially.
+"""
+
+from __future__ import annotations
+
+import asyncio
+
+from fastapi import APIRouter, BackgroundTasks, HTTPException
+
+from api.models import DagWorkflow, ExecutionResponse, ExecutionStatus, NodeType
+from api.routes.websocket import manager
+from core.executor import broadcast_log, execute_node
+from core.graph_parser.topological_sort import CyclicGraphError, topological_sort
+from core.ollama_client.client import global_ollama_client
+
+router = APIRouter()
+
+# Global dict to track running workflows for engine status and force stop
+active_workflow_tasks: dict[str, asyncio.Task] = {}
+
+
+async def _run_workflow(workflow: DagWorkflow):
+    """
+    Background task that executes the entire DAG workflow concurrently.
+    Nodes run as soon as their dependencies complete.
+    """
+    await broadcast_log(
+        manager,
+        "system",
+        f"═══ Workflow '{workflow.workflow_id}' started ═══",
+        "INFO",
+    )
+
+    # Build node lookup
+    node_map = {node.id: node for node in workflow.nodes}
+
+    # Validate graph (though already validated in execute_graph)
+    node_ids = [node.id for node in workflow.nodes]
+    try:
+        execution_order = topological_sort(node_ids, workflow.edges)
+    except CyclicGraphError:
+        await broadcast_log(
+            manager,
+            "system",
+            "Oops! Two of your steps are pointing at each other in an infinite loop. "
+            "Try reversing one of the connections to fix the flow.",
+            "ERROR",
+        )
+        return
+
+    await broadcast_log(
+        manager,
+        "system",
+        f"Topological order: {' → '.join(execution_order)}",
+    )
+
+    # Build maps for predecessors
+    edge_map: dict[str, list[str]] = {}
+    for edge in workflow.edges:
+        edge_map.setdefault(edge.target, []).append(edge.source)
+
+    node_outputs: dict[str, str] = {}
+    completed_events = {node.id: asyncio.Event() for node in workflow.nodes}
+    workflow_failed = asyncio.Event()
+
+    async def _run_node(node_id: str):
+        node = node_map[node_id]
+
+        # Wait for all predecessors to complete
+        predecessors = edge_map.get(node_id, [])
+        for pred in predecessors:
+            await completed_events[pred].wait()
+
+        # Stop early if the workflow has failed in another branch
+        if workflow_failed.is_set():
+            return
+
+        await broadcast_log(
+            manager,
+            node_id,
+            f"──── Executing node: {node_id} ({node.type.value}) ────",
+        )
+
+        from core.state_db import get_node_output, save_node_output
+
+        cached_output = get_node_output(workflow.workflow_id, node_id)
+        if cached_output:
+            await broadcast_log(
+                manager,
+                node_id,
+                "⏭️ Resuming from cached state",
+                "SUCCESS",
+            )
+            node_outputs[node_id] = cached_output
+            completed_events[node_id].set()
+            return
+
+        input_context = "\n\n".join(node_outputs.get(pred, "") for pred in predecessors)
+
+        try:
+            output = await execute_node(
+                node=node,
+                input_context=input_context,
+                ws_manager=manager,
+                ollama=global_ollama_client,
+                bypass_ram_check=workflow.bypass_ram_check or False,
+            )
+            node_outputs[node_id] = output
+            save_node_output(workflow.workflow_id, node_id, output)
+        except Exception as e:
+            workflow_failed.set()
+            await broadcast_log(
+                manager,
+                node_id,
+                f"✗ Fatal error: {str(e)}",
+                "ERROR",
+            )
+            await broadcast_log(
+                manager,
+                "system",
+                f"═══ Workflow FAILED at node '{node_id}' ═══",
+                "ERROR",
+            )
+            return
+        finally:
+            # Signal this node is done
+            completed_events[node_id].set()
+
+    # ── Hardware Adaptive Engine: Sliding Concurrency Gate ──
+    ready_nodes = [n for n in node_ids if not edge_map.get(n)]
+    pending_nodes = set(node_ids) - set(ready_nodes)
+    from typing import Any
+    running_tasks: dict[str, asyncio.Task[Any]] = {}
+
+    from core.hardware import get_available_vram_bytes, estimate_vram_required
+
+    async def _execute_ready_batch():
+        nonlocal ready_nodes, pending_nodes
+        while ready_nodes or running_tasks:
+            # Check for failures
+            if workflow_failed.is_set():
+                break
+
+            # If there are ready nodes, try to schedule them based on hardware
+            scheduled_this_tick = []
+
+            # Re-read available VRAM dynamically
+            available_vram = await get_available_vram_bytes()
+
+            # Account for nodes that are currently running
+            for running_node_id in running_tasks:
+                running_node = node_map[running_node_id]
+                if running_node.type == NodeType.AGENT:
+                    model = getattr(running_node.data, "model", "qwen2.5:0.5b")
+                    available_vram -= estimate_vram_required(model)
+
+            # Safety buffer to prevent 100% saturation
+            available_vram = max(
+                0, available_vram - (512 * 1024 * 1024)
+            )  # 512MB buffer
+
+            for node_id in list(ready_nodes):
+                node = node_map[node_id]
+
+                # If it's an AI model, check RAM
+                if node.type == NodeType.AGENT:
+                    model = getattr(node.data, "model", "qwen2.5:0.5b")
+                    req_vram = estimate_vram_required(model)
+
+                    if req_vram > available_vram and running_tasks:
+                        # Serialize it: wait for current tasks to finish to free memory
+                        await broadcast_log(
+                            manager,
+                            "system",
+                            f"Hardware optimization active: Your device does not have enough free memory to run '{node_id}' simultaneously. "
+                            f"To prevent a system freeze, NeuralFlow is safely queuing it sequentially.",
+                            "INFO",
+                        )
+                        continue  # Skip scheduling this node for now
+
+                    # We have enough memory or there are no running tasks (force run to avoid deadlock)
+                    available_vram -= req_vram
+
+                # Schedule the node
+                ready_nodes.remove(node_id)
+                scheduled_this_tick.append(node_id)
+                running_tasks[node_id] = asyncio.create_task(_run_node(node_id))
+
+            if not running_tasks:
+                break
+
+            # Wait for at least one task to finish before re-evaluating the gate
+            done, _ = await asyncio.wait(
+                running_tasks.values(), return_when=asyncio.FIRST_COMPLETED
+            )
+
+            # Process completed tasks
+            for task in done:
+                # Find which node_id this task belonged to
+                completed_node_id = next(
+                    nid for nid, t in running_tasks.items() if t == task
+                )
+                del running_tasks[completed_node_id]
+
+                # Check for newly unblocked nodes
+                for pending in list(pending_nodes):
+                    predecessors = edge_map.get(pending, [])
+                    if all(completed_events[p].is_set() for p in predecessors):
+                        pending_nodes.remove(pending)
+                        ready_nodes.append(pending)
+
+    try:
+        # Launch the scheduler loop
+        await _execute_ready_batch()
+
+        if not workflow_failed.is_set():
+            await broadcast_log(
+                manager,
+                "system",
+                f"═══ Workflow '{workflow.workflow_id}' completed successfully ═══",
+                "SUCCESS",
+            )
+    except asyncio.CancelledError:
+        # Cleanup if cancelled via Force Stop
+        for task in running_tasks.values():
+            task.cancel()
+        await broadcast_log(
+            manager,
+            "system",
+            f"═══ Workflow '{workflow.workflow_id}' forcibly stopped ═══",
+            "WARN",
+        )
+    finally:
+        # Clean up global task tracker
+        if workflow.workflow_id in active_workflow_tasks:
+            del active_workflow_tasks[workflow.workflow_id]
+
+
+@router.post("/execute-graph", response_model=ExecutionResponse)
+async def execute_graph(
+    workflow: DagWorkflow,
+    background_tasks: BackgroundTasks,
+):
+    """
+    Execute a DAG workflow.
+
+    Validates the graph structure (no cycles, valid references),
+    then launches execution as a background task.
+    Real-time logs are streamed via the /ws/logs WebSocket endpoint.
+    """
+    # 1. Health check the AI backend server before starting
+    # If bypass_ram_check is true, it means Force Start is active, so we bypass strict health requirements.
+    if not workflow.bypass_ram_check:
+        is_ollama_healthy = await global_ollama_client.health_check()
+        if not is_ollama_healthy:
+            raise HTTPException(
+                status_code=503, 
+                detail="The AI backend server (Ollama) is not running. Please start it before executing automations."
+            )
+
+    # 2. Validate: check for cycles before starting
+    node_ids = [node.id for node in workflow.nodes]
+    try:
+        topological_sort(node_ids, workflow.edges)
+    except CyclicGraphError:
+        # Broadcast friendly message via WS instead of raw HTTP error
+
+        async def _send_cycle_error():
+            await broadcast_log(
+                manager,
+                "system",
+                "Oops! Two of your steps are pointing at each other in a loop. "
+                "Try reversing one connection to fix the flow.",
+                "ERROR",
+            )
+
+        asyncio.create_task(_send_cycle_error())
+        raise HTTPException(
+            status_code=400, detail="Cyclic graph detected. Check your connections."
+        )
+
+    # Cancel any existing workflows before starting a new one
+    for task_id, task in list(active_workflow_tasks.items()):
+        task.cancel()
+        del active_workflow_tasks[task_id]
+
+    # Launch execution explicitly as asyncio Task
+    task = asyncio.create_task(_run_workflow(workflow))
+    active_workflow_tasks[workflow.workflow_id] = task
+
+    return ExecutionResponse(
+        status=ExecutionStatus.STARTED,
+        workflow_id=workflow.workflow_id,
+        message=f"Workflow started with {len(workflow.nodes)} nodes.",
+    )
+
+@router.post("/stop-engine")
+async def stop_engine():
+    """
+    Forcefully stop all currently running workflows.
+    """
+    count = len(active_workflow_tasks)
+    for task_id, task in list(active_workflow_tasks.items()):
+        task.cancel()
+        del active_workflow_tasks[task_id]
+        
+    import asyncio
+    async def _send_stop_msg():
+        await broadcast_log(
+            manager,
+            "system",
+            "🛑 ENGINE STOPPED: All running tasks have been terminated by the user.",
+            "ERROR",
+        )
+    asyncio.create_task(_send_stop_msg())
+
+    return {"status": "stopped", "stopped_tasks": count}
+
+@router.get("/engine-status")
+async def engine_status():
+    """
+    Check if the engine is currently running any workflows.
+    """
+    is_running = len(active_workflow_tasks) > 0
+    return {"is_running": is_running, "active_tasks": len(active_workflow_tasks)}
+
+
+=========================================
+FILE: backend/api/routes/websocket.py
+=========================================
+
+"""
+WebSocket connection manager and /ws/logs endpoint.
+Handles multi-client broadcasting of real-time execution logs.
+"""
+
+from __future__ import annotations
+
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+
+router = APIRouter()
+
+
+class ConnectionManager:
+    """Manages active WebSocket connections for log broadcasting."""
+
+    def __init__(self):
+        self.active_connections: list[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        """Accept and register a new WebSocket connection."""
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        """Remove a WebSocket connection from active list."""
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: str):
+        """Send a message to all connected clients."""
+        disconnected = []
+        for connection in self.active_connections:
+            try:
+                await connection.send_text(message)
+            except Exception:
+                disconnected.append(connection)
+
+        # Clean up disconnected clients
+        for conn in disconnected:
+            self.disconnect(conn)
+
+    @property
+    def client_count(self) -> int:
+        return len(self.active_connections)
+
+
+# Global connection manager instance
+manager = ConnectionManager()
+
+
+@router.websocket("/ws/logs")
+async def websocket_logs(websocket: WebSocket):
+    """
+    WebSocket endpoint for real-time execution log streaming.
+    Clients connect here to receive live updates during workflow execution.
+    """
+    await manager.connect(websocket)
+    try:
+        while True:
+            # Keep connection alive — wait for client messages (e.g., pings)
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+
+
+=========================================
+FILE: backend/core/executor.py
+=========================================
+
+"""
+Node executor — runs each DAG node sequentially with context passing.
+Streams real-time logs via the WebSocket connection manager.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import traceback
+import os
+import aiofiles
+from datetime import datetime, timezone
+from typing import Optional
+
+from api.models import DagNode, NodeType
+from core.config import settings
+from core.telemetry import broadcast_log
+from core.ollama_client.client import (
+    OllamaClient,
+    OllamaConnectionError,
+    ModelNotFoundError,
+)
+from core.file_parser import parse_file
+
+
+class ExecutionError(Exception):
+    """Raised when a node execution fails."""
+
+    pass
+
+
+# Track the last model loaded in Ollama to enable smart VRAM unloading
+# (Deprecated: now dynamically checks /api/ps to unload all others)
+_last_active_model: Optional[str] = None
+
+
+async def execute_trigger_node(
+    node: DagNode,
+    ws_manager,
+) -> str:
+    """
+    Execute a trigger node — reads content from the specified path.
+
+    Returns:
+        The file/directory content as a string context.
+    """
+    target_path = node.data.target_path or ""
+
+    await broadcast_log(
+        ws_manager, node.id, f"⚡ TRIGGER: Reading from path '{target_path}'..."
+    )
+
+    if not target_path:
+        await broadcast_log(
+            ws_manager,
+            node.id,
+            "No target path specified. Using empty context.",
+            "WARN",
+        )
+        return ""
+
+    try:
+        if os.path.isfile(target_path):
+            # Use Omni-Parser: auto-detects PDF, DOCX, CSV, TXT, MD
+            await broadcast_log(
+                ws_manager, node.id, f"⚡ TRIGGER: Reading from '{target_path}'..."
+            )
+            content = parse_file(target_path)
+            await broadcast_log(
+                ws_manager,
+                node.id,
+                f"✓ Read file ({len(content)} chars): {os.path.basename(target_path)}",
+                "SUCCESS",
+            )
+            return content
+
+        elif os.path.isdir(target_path):
+            # Parse limit from item_count
+            item_count_str = str(node.data.item_count or "1").lower().strip()
+            if item_count_str == "all":
+                limit = 50
+            else:
+                try:
+                    limit = int(item_count_str)
+                except ValueError:
+                    limit = 1
+            limit = max(1, min(limit, 50))
+
+            # Read directory listing
+            items = sorted(await asyncio.to_thread(os.listdir, target_path))[:limit]
+
+            async def _read_preview(item: str) -> str:
+                item_path = os.path.join(target_path, item)
+                if os.path.isfile(item_path):
+                    try:
+                        async with aiofiles.open(
+                            item_path, "r", encoding="utf-8", errors="replace"
+                        ) as f:
+                            preview = await f.read(500)
+                        return f"--- {item} ---\n{preview}\n"
+                    except Exception:
+                        return f"--- {item} --- [binary/unreadable]\n"
+                else:
+                    return f"--- {item}/ --- [directory]\n"
+
+            # Check files one after another sequentially
+            entries = []
+            for item in items:
+                entries.append(await _read_preview(item))
+
+            content = "\n".join(entries)
+            await broadcast_log(
+                ws_manager,
+                node.id,
+                f"✓ Scanned directory sequentially ({len(entries)} items): {target_path}",
+                "SUCCESS",
+            )
+            return content
+
+        else:
+            await broadcast_log(
+                ws_manager,
+                node.id,
+                f"✗ Path does not exist: {target_path}",
+                "ERROR",
+            )
+            return f"[Error: Path '{target_path}' not found]"
+
+    except PermissionError:
+        await broadcast_log(
+            ws_manager,
+            node.id,
+            f"✗ Permission denied: {target_path}",
+            "ERROR",
+        )
+        return f"[Error: Permission denied for '{target_path}']"
+
+
+async def execute_agent_node(
+    node: DagNode,
+    input_context: str,
+    ws_manager,
+    ollama: OllamaClient,
+    bypass_ram_check: bool = False,
+) -> str:
+    """
+    Execute an agent node — checks RAM, unloads prior model, injects context, calls Ollama.
+    """
+    global _last_active_model
+    model = node.data.model or "qwen2.5:0.5b"
+    template = node.data.prompt_template or "{{input}}"
+
+    # ── RAM Guardrail ─────────────────────────────────────────────────────────
+    try:
+        import psutil
+
+        available_gb = psutil.virtual_memory().available / (1024**3)
+        if available_gb < settings.safe_ram_gb_limit:
+            msg = (
+                f"⚠️ Device memory is heavily loaded ({available_gb:.1f}GB free). "
+                "Please exit some open programs to allow NeuralFlow to process safely."
+            )
+            if bypass_ram_check:
+                await broadcast_log(ws_manager, node.id, msg + " [Bypassed by User]", "WARN")
+            else:
+                await broadcast_log(ws_manager, node.id, msg, "WARN")
+                return f"[Paused: {msg}]"
+    except ImportError:
+        pass  # psutil not installed — skip check
+
+    # ── VRAM Lifecycle Manager ────────────────────────────────────────────────
+    await broadcast_log(
+        ws_manager,
+        node.id,
+        f"♻️ Enforcing exclusivity: Unloading any models other than '{model}' from memory...",
+    )
+    await ollama.unload_all_other_models(model)
+    _last_active_model = model
+
+    # ── Context Window Cap (Memory Efficiency via RAG) ─────────────────────────
+    if len(input_context) > settings.max_context_chars:
+        from core.context_pruner import prune_context
+
+        await broadcast_log(
+            ws_manager,
+            node.id,
+            f"✂️ Document is very long ({len(input_context):,} chars). Running Smart Context Pruning...",
+            "WARN",
+        )
+        input_context = await prune_context(
+            input_context, query=template, max_chars=settings.max_context_chars
+        )
+
+    # ── Prompt Construction ───────────────────────────────────────────────────
+    if "{{input}}" in template:
+        prompt = template.replace("{{input}}", input_context)
+    else:
+        prompt = f"{template}\n\n[Context Data to Process]:\n{input_context}"
+
+    prompt += "\n\n[System Instruction]: Return ONLY the direct output. Do not include any conversational filler, explanations, or pleasantries."
+
+    # Determine num_ctx based on model — inject dynamically
+    from api.routes.models import CURATED_MODELS
+
+    model_meta = next((m for m in CURATED_MODELS if m["id"] == model), None)
+    num_ctx = int(str(model_meta["num_ctx"])) if model_meta else 4096
+    # Scale up if content is long
+    if len(prompt) > 12000 and num_ctx < 8192:
+        num_ctx = 8192
+
+    await broadcast_log(
+        ws_manager,
+        node.id,
+        f"🤖 AGENT: Connecting to Ollama ({model}) · ctx={num_ctx:,} tokens...",
+    )
+    await broadcast_log(ws_manager, node.id, f"   Prompt: {len(prompt):,} chars")
+
+    try:
+        # Build options dict for fine-tuning
+        from typing import Any
+        options: dict[str, Any] = {}
+        if hasattr(node.data, "temperature") and node.data.temperature is not None:
+            options["temperature"] = node.data.temperature
+        if hasattr(node.data, "max_tokens") and node.data.max_tokens is not None:
+            options["num_predict"] = node.data.max_tokens
+        if hasattr(node.data, "top_p") and node.data.top_p is not None:
+            options["top_p"] = node.data.top_p
+        if (
+            hasattr(node.data, "repeat_penalty")
+            and node.data.repeat_penalty is not None
+        ):
+            options["repeat_penalty"] = node.data.repeat_penalty
+        if hasattr(node.data, "seed") and node.data.seed is not None:
+            options["seed"] = node.data.seed
+        if hasattr(node.data, "stop_sequences") and node.data.stop_sequences:
+            options["stop"] = [
+                s.strip() for s in node.data.stop_sequences.split(",") if s.strip()
+            ]
+
+        chunks = []
+        chunk_count = 0
+
+        try:
+            async for chunk in ollama.generate(
+                model=model,
+                prompt=prompt,
+                stream=True,
+                num_ctx=num_ctx,
+                options=options,
+                keep_alive=f"{node.data.keep_alive}m"
+                if hasattr(node.data, "keep_alive") and node.data.keep_alive is not None
+                else "5m",
+            ):
+                chunks.append(chunk)
+                chunk_count += 1
+                if chunk_count % 10 == 0:
+                    await broadcast_log(
+                        ws_manager,
+                        node.id,
+                        f"   [Stream] Generated {len(chunks)} tokens...",
+                    )
+        except ModelNotFoundError:
+            await broadcast_log(
+                ws_manager,
+                node.id,
+                f"⚠️ Model '{model}' not found. Pulling it automatically... This might take a few minutes.",
+                "WARN"
+            )
+            try:
+                last_status = ""
+                async for status in ollama.pull_model(model):
+                    msg = status.get("status", "Downloading...")
+                    if "completed" in status and "total" in status:
+                        pct = int((status["completed"] / status["total"]) * 100)
+                        msg += f" {pct}%"
+                    
+                    if msg != last_status:
+                        await broadcast_log(ws_manager, node.id, f"📥 {msg}", "INFO")
+                        last_status = msg
+                
+                await broadcast_log(ws_manager, node.id, f"✓ Model '{model}' pulled successfully. Retrying generation...", "SUCCESS")
+                
+                # Retry generation
+                chunks = []
+                chunk_count = 0
+                async for chunk in ollama.generate(
+                    model=model,
+                    prompt=prompt,
+                    stream=True,
+                    num_ctx=num_ctx,
+                    options=options,
+                    keep_alive=f"{node.data.keep_alive}m"
+                    if hasattr(node.data, "keep_alive") and node.data.keep_alive is not None
+                    else "5m",
+                ):
+                    chunks.append(chunk)
+                    chunk_count += 1
+                    if chunk_count % 10 == 0:
+                        await broadcast_log(
+                            ws_manager,
+                            node.id,
+                            f"   [Stream] Generated {len(chunks)} tokens...",
+                        )
+            except Exception as pull_err:
+                await broadcast_log(ws_manager, node.id, f"✗ Failed to pull model '{model}': {pull_err}", "ERROR")
+                return f"[Error: Failed to pull model: {pull_err}]"
+
+        full_response = "".join(chunks)
+        await broadcast_log(
+            ws_manager,
+            node.id,
+            f"✓ Generation complete ({len(full_response):,} chars)",
+            "SUCCESS",
+        )
+        return full_response
+
+    except OllamaConnectionError as e:
+        await broadcast_log(
+            ws_manager,
+            node.id,
+            f"✗ {str(e)}",
+            "ERROR",
+            raw_traceback=traceback.format_exc(),
+        )
+        return f"[Error: Ollama not reachable — {str(e)}]"
+    except ModelNotFoundError as e:
+        await broadcast_log(
+            ws_manager,
+            node.id,
+            f"✗ {str(e)}",
+            "ERROR",
+            raw_traceback=traceback.format_exc(),
+        )
+        return f"[Error: {str(e)}]"
+    except Exception as e:
+        msg = str(e)
+        if "RemoteProtocolError" in msg or "ConnectError" in msg:
+            friendly = "The AI connection dropped mid-response. Please check Ollama is still running and try again."
+            await broadcast_log(
+                ws_manager,
+                node.id,
+                f"✗ {friendly}",
+                "ERROR",
+                raw_traceback=traceback.format_exc(),
+            )
+            return f"[Error: {friendly}]"
+        await broadcast_log(
+            ws_manager,
+            node.id,
+            f"✗ Unexpected error: {msg}",
+            "ERROR",
+            raw_traceback=traceback.format_exc(),
+        )
+        return f"[Error: {msg}]"
+
+
+async def execute_action_node(
+    node: DagNode,
+    input_context: str,
+    ws_manager,
+) -> str:
+    """
+    Execute an action node — writes the accumulated output to a file.
+
+    Returns:
+        Confirmation message.
+    """
+    target_path = node.data.target_path or ""
+
+    await broadcast_log(
+        ws_manager,
+        node.id,
+        f"📁 ACTION: Writing output to '{target_path}'...",
+    )
+
+    if not target_path:
+        await broadcast_log(
+            ws_manager,
+            node.id,
+            "No target path specified. Output discarded.",
+            "WARN",
+        )
+        return input_context
+
+    try:
+        import os
+
+        base, ext = os.path.splitext(target_path)
+        fmt = getattr(node.data, "output_format", "Plain Text")
+
+        if not ext:
+            if fmt == "Markdown":
+                target_path += ".md"
+            elif fmt == "JSON":
+                target_path += ".json"
+            elif fmt == "CSV":
+                target_path += ".csv"
+            elif fmt == "PDF":
+                target_path += ".pdf"
+            elif fmt == "Docs":
+                target_path += ".docx"
+            elif fmt == "HTML":
+                target_path += ".html"
+            else:
+                target_path += ".txt"
+
+        # Ensure parent directory exists
+        os.makedirs(os.path.dirname(target_path) or ".", exist_ok=True)
+
+        if target_path.endswith(".pdf"):
+            try:
+                from fpdf import FPDF
+                pdf = FPDF()
+                pdf.add_page()
+                pdf.set_font("Helvetica", size=12)
+                # Encode text to latin-1 or handle Unicode properly
+                pdf.multi_cell(0, 10, text=input_context.encode('latin-1', 'replace').decode('latin-1'))
+                await asyncio.to_thread(pdf.output, target_path)
+            except ImportError:
+                await broadcast_log(ws_manager, node.id, "fpdf2 not installed. Saving as text.", "WARN")
+                target_path = target_path.replace(".pdf", ".txt")
+                async with aiofiles.open(target_path, "w", encoding="utf-8") as f:
+                    await f.write(input_context)
+
+        elif target_path.endswith(".docx"):
+            try:
+                from docx import Document
+                doc = Document()
+                doc.add_paragraph(input_context)
+                await asyncio.to_thread(doc.save, target_path)
+            except ImportError:
+                await broadcast_log(ws_manager, node.id, "python-docx not installed. Saving as text.", "WARN")
+                target_path = target_path.replace(".docx", ".txt")
+                async with aiofiles.open(target_path, "w", encoding="utf-8") as f:
+                    await f.write(input_context)
+
+        else:
+            async with aiofiles.open(target_path, "w", encoding="utf-8") as f:
+                await f.write(input_context)
+
+        await broadcast_log(
+            ws_manager,
+            node.id,
+            f"✓ Written {len(input_context)} chars to {target_path}",
+            "SUCCESS",
+        )
+        return f"Output saved to {target_path}"
+
+    except PermissionError:
+        await broadcast_log(
+            ws_manager,
+            node.id,
+            f"✗ Permission denied: {target_path}",
+            "ERROR",
+        )
+        return f"[Error: Permission denied writing to '{target_path}']"
+    except Exception as e:
+        await broadcast_log(
+            ws_manager,
+            node.id,
+            f"✗ Write failed: {str(e)}",
+            "ERROR",
+            raw_traceback=traceback.format_exc(),
+        )
+        return f"[Error: {str(e)}]"
+
+
+# ─── New Execution Handlers ───────────────────────────────────────────────────
+
+
+async def execute_email_trigger_node(node: DagNode, ws_manager) -> str:
+    from core.email_listener import EmailConfig, poll_inbox_once
+
+    await broadcast_log(ws_manager, node.id, "📧 TRIGGER: Checking email inbox...")
+    try:
+        config = EmailConfig(
+            imap_server=node.data.imap_server or "",
+            imap_port=node.data.imap_port or 993,
+            email_address=node.data.email_address or "",
+            app_password=node.data.app_password or "",
+            email_count=node.data.email_count or "1"
+        )
+        results = await poll_inbox_once(config)
+        if not results:
+            await broadcast_log(ws_manager, node.id, "No unread emails found.", "WARN")
+            return ""
+
+        # Format all fetched emails
+        formatted_emails = []
+        for i, email in enumerate(results, 1):
+            formatted_emails.append(f"Email {i}:\nFrom: {email['sender']}\nSubject: {email['subject']}\n\n{email['body']}")
+        
+        content = "\n\n---\n\n".join(formatted_emails)
+        
+        await broadcast_log(
+            ws_manager, node.id, f"✓ Read {len(results)} email(s)", "SUCCESS"
+        )
+        return content
+    except Exception as e:
+        await broadcast_log(ws_manager, node.id, f"✗ Email error: {str(e)}", "ERROR")
+        return ""
+
+
+async def execute_webhook_trigger_node(
+    node: DagNode, input_context: str, ws_manager
+) -> str:
+    await broadcast_log(
+        ws_manager, node.id, "🌐 TRIGGER: Processing webhook payload..."
+    )
+
+    # If the webhook route injected context via target_path hack
+    if node.data.target_path and node.data.target_path.startswith("RAW_CONTEXT:"):
+        return node.data.target_path[len("RAW_CONTEXT:") :]
+
+    return input_context
+
+
+async def execute_cron_trigger_node(node: DagNode, ws_manager) -> str:
+    await broadcast_log(ws_manager, node.id, "⏰ TRIGGER: Cron scheduler fired.")
+    return f"Triggered by cron schedule at {datetime.now(timezone.utc).isoformat()}"
+
+
+async def execute_clipboard_trigger_node(
+    node: DagNode, input_context: str, ws_manager
+) -> str:
+    await broadcast_log(ws_manager, node.id, "📋 TRIGGER: Clipboard changed.")
+    # Context is passed from clipboard monitor
+    if node.data.target_path == "CLIPBOARD":
+        import pyperclip
+
+        return pyperclip.paste()
+    return input_context
+
+
+async def execute_browser_action_node(node: DagNode, ws_manager) -> str:
+    from core.browser_rpa import scrape_url
+
+    url = node.data.browser_url
+    if not url:
+        await broadcast_log(
+            ws_manager, node.id, "✗ No URL specified for browser RPA.", "ERROR"
+        )
+        return ""
+
+    await broadcast_log(ws_manager, node.id, f"🌐 ACTION: Scraping URL: {url}...")
+    try:
+        result = await scrape_url(
+            url=url,
+            instruction=node.data.browser_instruction or "",
+            headless=node.data.browser_headless if hasattr(node.data, "browser_headless") and node.data.browser_headless is not None else True,
+        )
+        if result["status"] == "error":
+            await broadcast_log(
+                ws_manager, node.id, f"✗ Scraping failed: {result['error']}", "ERROR"
+            )
+            return f"[Error: {result['error']}]"
+
+        await broadcast_log(
+            ws_manager,
+            node.id,
+            f"✓ Extracted {result['char_count']} chars from {result['title']}",
+            "SUCCESS",
+        )
+        return result["extracted_content"]
+    except Exception as e:
+        await broadcast_log(ws_manager, node.id, f"✗ Browser error: {str(e)}", "ERROR")
+        return ""
+
+
+async def execute_subprocess_action_node(
+    node: DagNode, input_context: str, ws_manager
+) -> str:
+    from core.safe_executor import run_code
+
+    runtime = node.data.subprocess_runtime or "bash"
+    code = node.data.subprocess_code or ""
+
+    await broadcast_log(ws_manager, node.id, f"⚙️ ACTION: Running {runtime} script...")
+    result = await run_code(runtime=runtime, code=code, input_context=input_context)
+
+    if result["status"] == "success":
+        await broadcast_log(
+            ws_manager, node.id, "✓ Script completed successfully", "SUCCESS"
+        )
+        return result["stdout"]
+    else:
+        err = result["stderr"] or result["stdout"] or "Unknown error"
+        await broadcast_log(
+            ws_manager,
+            node.id,
+            f"✗ Script failed (exit code {result['exit_code']}): {err}",
+            "ERROR",
+        )
+        return f"STDOUT:\n{result['stdout']}\n\nSTDERR:\n{result['stderr']}"
+
+
+async def execute_memory_store_node(
+    node: DagNode, input_context: str, ws_manager
+) -> str:
+    from core.memory_manager import ingest
+
+    collection = node.data.memory_collection or "default"
+    chunk_size = node.data.memory_chunk_size or 512
+
+    await broadcast_log(
+        ws_manager, node.id, f"🧠 MEMORY: Storing in collection '{collection}'..."
+    )
+    result = await ingest(
+        text=input_context, collection_name=collection, chunk_size=chunk_size
+    )
+
+    if result["status"] == "success":
+        await broadcast_log(ws_manager, node.id, f"✓ {result['message']}", "SUCCESS")
+    elif result["status"] == "error":
+        await broadcast_log(
+            ws_manager, node.id, f"✗ Memory store error: {result['error']}", "ERROR"
+        )
+
+    return input_context  # Passthrough
+
+
+async def execute_memory_query_node(
+    node: DagNode, input_context: str, ws_manager
+) -> str:
+    from core.memory_manager import query
+
+    collection = node.data.memory_collection or "default"
+    top_k = node.data.memory_top_k or 3
+
+    # We use input_context as the query prompt
+    await broadcast_log(
+        ws_manager, node.id, f"🧠 MEMORY: Querying collection '{collection}'..."
+    )
+    result = await query(prompt=input_context, collection_name=collection, top_k=top_k)
+
+    if result["status"] == "success":
+        await broadcast_log(
+            ws_manager,
+            node.id,
+            f"✓ Retrieved {len(result['results'])} memory segments",
+            "SUCCESS",
+        )
+
+        mode = node.data.memory_inject_mode or "prepend"
+        mem_str = "[Retrieved Memory context:]\n" + result["context_string"] + "\n\n"
+
+        if mode == "prepend":
+            return mem_str + input_context
+        else:
+            return input_context + "\n\n" + mem_str
+    else:
+        await broadcast_log(
+            ws_manager,
+            node.id,
+            f"✗ Memory query error: {result.get('error', 'unknown')}",
+            "ERROR",
+        )
+        return input_context
+
+
+async def execute_node(
+    node: DagNode,
+    input_context: str,
+    ws_manager,
+    ollama: Optional[OllamaClient] = None,
+    bypass_ram_check: bool = False,
+) -> str:
+    """
+    Execute a single DAG node based on its type.
+
+    Args:
+        node: The DAG node to execute.
+        input_context: Context string from upstream nodes.
+        ws_manager: WebSocket connection manager for log broadcasting.
+        ollama: Ollama client instance (required for agent nodes).
+
+    Returns:
+        Output context string to pass to downstream nodes.
+    """
+    if node.type == NodeType.TRIGGER:
+        return await execute_trigger_node(node, ws_manager)
+    elif node.type == NodeType.AGENT:
+        if ollama is None:
+            ollama = OllamaClient()
+        return await execute_agent_node(node, input_context, ws_manager, ollama, bypass_ram_check)
+    elif node.type == NodeType.ACTION:
+        return await execute_action_node(node, input_context, ws_manager)
+    elif node.type == NodeType.EMAIL_TRIGGER:
+        return await execute_email_trigger_node(node, ws_manager)
+    elif node.type == NodeType.WEBHOOK_TRIGGER:
+        return await execute_webhook_trigger_node(node, input_context, ws_manager)
+    elif node.type == NodeType.CRON_TRIGGER:
+        return await execute_cron_trigger_node(node, ws_manager)
+    elif node.type == NodeType.CLIPBOARD_TRIGGER:
+        return await execute_clipboard_trigger_node(node, input_context, ws_manager)
+    elif node.type == NodeType.BROWSER_ACTION:
+        return await execute_browser_action_node(node, ws_manager)
+    elif node.type == NodeType.SUBPROCESS_ACTION:
+        return await execute_subprocess_action_node(node, input_context, ws_manager)
+    elif node.type == NodeType.MEMORY_STORE:
+        return await execute_memory_store_node(node, input_context, ws_manager)
+    elif node.type == NodeType.MEMORY_QUERY:
+        return await execute_memory_query_node(node, input_context, ws_manager)
+    else:
+        await broadcast_log(
+            ws_manager,
+            node.id,
+            f"✗ Unknown node type: {node.type}",
+            "ERROR",
+        )
+        return input_context
+
+
+=========================================
+FILE: backend/core/safe_executor.py
+=========================================
+
+"""
+safe_executor.py — Sandboxed Subprocess Action Node.
+Executes code locally (bash, python3, node) with strict timeouts.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import os
+import subprocess
+import tempfile
+
+
+async def run_code(
+    runtime: str, code: str, input_context: str = "", timeout: int = 30
+) -> dict:
+    """
+    Execute code in the requested runtime.
+    Upstream input_context is injected as an environment variable (NEURALFLOW_INPUT).
+    """
+    runtimes = {
+        "bash": {"cmd": ["bash", "-c"], "ext": ".sh"},
+        "python3": {"cmd": ["python3"], "ext": ".py"},
+        "node": {"cmd": ["node"], "ext": ".js"},
+    }
+
+    if runtime not in runtimes:
+        return {
+            "status": "error",
+            "exit_code": -1,
+            "stdout": "",
+            "stderr": f"Unsupported runtime: {runtime}",
+        }
+
+    if not code or not code.strip():
+        return {
+            "status": "skipped",
+            "exit_code": 0,
+            "stdout": "No code to execute.",
+            "stderr": "",
+        }
+
+    rt_config = runtimes[runtime]
+
+    # We use a temp file to execute scripts robustly, especially for multi-line
+    # code or languages that don't take `-c` cleanly without escaping issues.
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=str(rt_config["ext"]), delete=False
+    ) as f:
+        f.write(code)
+        temp_path = f.name
+
+    env = os.environ.copy()
+    # Inject input context so the script can process it
+    env["NEURALFLOW_INPUT"] = input_context
+
+    # Ensure node/python/bash can be found
+    # (Assuming user has them in PATH)
+
+    def _execute():
+        cmd = rt_config["cmd"]
+        if runtime == "bash":
+            cmd = ["bash", temp_path]
+        else:
+            cmd = rt_config["cmd"] + [temp_path]
+
+        try:
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                env=env,
+            )
+            return {
+                "status": "success" if result.returncode == 0 else "failed",
+                "exit_code": result.returncode,
+                "stdout": result.stdout.strip(),
+                "stderr": result.stderr.strip(),
+            }
+        except subprocess.TimeoutExpired:
+            return {
+                "status": "timeout",
+                "exit_code": -1,
+                "stdout": "",
+                "stderr": f"Execution timed out after {timeout} seconds.",
+            }
+        except FileNotFoundError:
+            return {
+                "status": "error",
+                "exit_code": -1,
+                "stdout": "",
+                "stderr": f"Runtime '{cmd[0]}' not found. Is it installed?",
+            }
+        except Exception as e:
+            return {
+                "status": "error",
+                "exit_code": -1,
+                "stdout": "",
+                "stderr": f"Execution error: {str(e)}",
+            }
+        finally:
+            try:
+                os.unlink(temp_path)
+            except Exception:
+                pass
+
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, _execute)
+
+
+=========================================
+FILE: backend/core/context_pruner.py
+=========================================
+
+"""
+context_pruner.py — RAG Context Pruner for local AI workflows.
+
+When input context exceeds the model's capacity (e.g. reading a 100-page PDF),
+this module applies a Hybrid RAG strategy to reduce it to a safe size.
+
+Primary Path: Dense Vector RAG (fast, efficient).
+Fallback: Map-Reduce Summarization (slow, used only when global context is explicitly required).
+"""
+
+from __future__ import annotations
+
+from typing import Optional
+from core.memory_manager import _chunk_text, _generate_embeddings, _CHROMA_AVAILABLE
+
+
+async def prune_context(
+    context_text: str, query: Optional[str] = None, max_chars: int = 24_000
+) -> str:
+    """
+    Prune long context to fit within max_chars constraint.
+    If a query is provided and ChromaDB is available, uses local embeddings to rank
+    the most relevant chunks (Dense Vector RAG).
+    Otherwise, falls back to simple truncation (to avoid Map-Reduce VRAM fatigue).
+    """
+    if len(context_text) <= max_chars:
+        return context_text
+
+    if query and _CHROMA_AVAILABLE:
+        try:
+            # 1. Chunk the input
+            chunk_size_chars = 2000
+            chunks = _chunk_text(
+                context_text, chunk_size=chunk_size_chars // 4
+            )  # approx 500 words
+
+            # 2. Get embeddings for chunks
+            chunk_embeddings = await _generate_embeddings(chunks)
+
+            # 3. Get embedding for query
+            query_embedding = (await _generate_embeddings([query]))[0]
+
+            # 4. Calculate cosine similarity
+            import numpy as np
+
+            q_vec = np.array(query_embedding)
+            similarities = []
+            for i, emb in enumerate(chunk_embeddings):
+                c_vec = np.array(emb)
+                # Cosine similarity
+                sim = np.dot(q_vec, c_vec) / (
+                    np.linalg.norm(q_vec) * np.linalg.norm(c_vec)
+                )
+                similarities.append((sim, chunks[i]))
+
+            # 5. Sort by most similar
+            similarities.sort(key=lambda x: x[0], reverse=True)
+
+            # 6. Reconstruct context up to max_chars
+            pruned_text = ""
+            for sim, chunk in similarities:
+                if len(pruned_text) + len(chunk) + 10 > max_chars:
+                    break
+                pruned_text += f"... {chunk} ...\n\n"
+
+            return "[PRUNED CONTEXT (Top Relevant Sections)]:\n" + pruned_text
+        except Exception:
+            # Fallback if embedding fails
+            pass
+
+    # Default fallback: safe truncation (first half, last half)
+    half = max_chars // 2
+    truncated_msg = (
+        f"\n\n... [TRUNCATED {len(context_text) - max_chars:,} chars] ...\n\n"
+    )
+    return context_text[:half] + truncated_msg + context_text[-half:]
+
+
+=========================================
+FILE: frontend/package.json
+=========================================
+
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@tanstack/react-query": "^5.101.0",
+    "@xyflow/react": "^12.11.0",
+    "cronstrue": "^3.14.0",
+    "lucide-react": "^1.17.0",
+    "next": "16.2.7",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.7",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+
+
+=========================================
+FILE: frontend/src/types/dag.ts
+=========================================
+
+/**
+ * TypeScript interfaces matching the strict DAG JSON schema.
+ * These types define the contract between Frontend and Backend.
+ */
+
+// ─── Node Types ─────────────────────────────────────────────────
+
+export type NodeType = 
+  // Original
+  | 'trigger' | 'agent' | 'action'
+  // New Triggers
+  | 'email_trigger' | 'webhook_trigger' | 'cron_trigger' | 'clipboard_trigger'
+  // New Actions
+  | 'browser_action' | 'subprocess_action'
+  // Memory
+  | 'memory_store' | 'memory_query';
+
+export interface DagNodeData {
+  // Core
+  model?: string;
+  prompt_template?: string;
+  target_path?: string;
+  label?: string;
+
+  // AI Fine-tuning
+  temperature?: number;
+  max_tokens?: number;
+  top_p?: number;
+  repeat_penalty?: number;
+  seed?: number;
+  stop_sequences?: string;
+  
+  // Email
+  imap_server?: string;
+  imap_port?: number;
+  email_address?: string;
+  app_password?: string;
+  poll_interval?: number;
+  
+  // Webhook
+  webhook_id?: string;
+  
+  // Cron
+  cron_expression?: string;
+  cron_interval_seconds?: number;
+  cron_label?: string;
+  
+  // Clipboard
+  clipboard_filter?: string;
+  clipboard_enabled?: boolean;
+  
+  // Browser
+  browser_url?: string;
+  browser_instruction?: string;
+  browser_headless?: boolean;
+  
+  // Subprocess
+  subprocess_runtime?: string;
+  subprocess_code?: string;
+  
+  // Memory
+  memory_collection?: string;
+  memory_chunk_size?: number;
+  memory_top_k?: number;
+  memory_inject_mode?: string;
+  
+  [key: string]: unknown;
+}
+
+export interface DagNode {
+  id: string;
+  type: NodeType;
+  data: DagNodeData;
+}
+
+export interface DagEdge {
+  source: string;
+  target: string;
+}
+
+export interface DagWorkflow {
+  workflow_id: string;
+  nodes: DagNode[];
+  edges: DagEdge[];
+}
+
+// ─── API Response Types ─────────────────────────────────────────
+
+export type ExecutionStatusType = 'started' | 'running' | 'completed' | 'failed';
+
+export interface ExecutionResponse {
+  status: ExecutionStatusType;
+  workflow_id: string;
+  message: string;
+}
+
+export interface LogEntry {
+  timestamp: string;
+  node_id: string;
+  level: 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS';
+  message: string;
+}
+
+export interface OllamaModel {
+  name: string;
+  size?: string;
+  modified_at?: string;
+}
+
+export interface HealthStatus {
+  backend: string;
+  ollama: 'connected' | 'disconnected';
+  ollama_url: string;
+}
+
+// ─── React Flow Extended Types ──────────────────────────────────
+
+import type { Node, Edge } from '@xyflow/react';
+
+export type FlowNode = Node<DagNodeData>;
+export type FlowEdge = Edge;
+
+export interface FlowState {
+  nodes: FlowNode[];
+  edges: FlowEdge[];
+  isExecuting: boolean;
+  executionStatus: ExecutionStatusType | 'idle';
+  logs: LogEntry[];
+  availableModels: OllamaModel[];
+  backendConnected: boolean;
+  ollamaConnected: boolean;
+}
+
+
+=========================================
+FILE: frontend/src/store/flowStore.ts
+=========================================
+
+/**
+ * Zustand store for managing the DAG canvas state.
+ * Handles nodes, edges, execution, WebSocket logs, and serialization.
+ */
+
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import {
+  applyNodeChanges,
+  applyEdgeChanges,
+  addEdge,
+} from '@xyflow/react';
+import type {
+  NodeChange,
+  EdgeChange,
+  Connection,
+} from '@xyflow/react';
+import type {
+  FlowNode,
+  FlowEdge,
+  DagWorkflow,
+  LogEntry,
+  OllamaModel,
+  ExecutionStatusType,
+  DagNodeData,
+} from '@/types/dag';
+
+const BACKEND_URL = 'http://localhost:8000';
+const WS_URL = 'ws://localhost:8000/ws/logs';
+
+export interface SavedBuilderAutomation {
+  id: string;
+  name: string;
+  savedAt: number;
+  state: {
+    nodes: FlowNode[];
+    edges: FlowEdge[];
+  };
+}
+
+interface FlowStore {
+  // ─── State ────────────────────────────────────────
+  workflowId: string;
+  automationName: string;
+  savedBuilderAutomations: SavedBuilderAutomation[];
+  nodes: FlowNode[];
+  edges: FlowEdge[];
+  isExecuting: boolean;
+  executionStatus: ExecutionStatusType | 'idle';
+  logs: LogEntry[];
+  availableModels: OllamaModel[];
+  backendConnected: boolean;
+  ollamaConnected: boolean;
+  wsConnection: WebSocket | null;
+
+  statusMessage: string;
+
+  // ─── Node/Edge Handlers ───────────────────────────
+  onNodesChange: (changes: NodeChange[]) => void;
+  onEdgesChange: (changes: EdgeChange[]) => void;
+  onConnect: (connection: Connection) => void;
+
+  // ─── Node Actions ─────────────────────────────────
+  addNode: (type: 'trigger' | 'agent' | 'action', position?: { x: number; y: number }) => void;
+  updateNodeData: (nodeId: string, data: Partial<DagNodeData>) => void;
+  removeNode: (nodeId: string) => void;
+
+  // ─── Serialization & Persistence ───────────────────
+  setAutomationName: (name: string) => void;
+  saveCurrentAutomation: () => void;
+  loadAutomation: (id: string) => void;
+  deleteAutomation: (id: string) => void;
+  serializeToDAG: () => DagWorkflow;
+  exportJSON: () => string;
+  saveState: () => Promise<void>;
+  loadState: () => Promise<void>;
+
+  // ─── Execution ────────────────────────────────────
+  deployWorkflow: (options?: { bypassRam?: boolean; forceStart?: boolean }) => Promise<void>;
+  stopWorkflow: () => Promise<void>;
+  connectWebSocket: () => void;
+  disconnectWebSocket: () => void;
+
+  // ─── Log Management ───────────────────────────────
+  appendLog: (log: LogEntry) => void;
+  clearLogs: () => void;
+
+  // ─── API Calls ────────────────────────────────────
+  fetchModels: () => Promise<void>;
+  checkHealth: () => Promise<void>;
+}
+
+let nodeIdCounter = 0;
+
+const useFlowStore = create<FlowStore>()(
+  persist(
+    (set, get) => ({
+      // ─── Initial State ──────────────────────────────────
+      workflowId: `wf_${Date.now()}`,
+      automationName: '',
+      savedBuilderAutomations: [],
+      nodes: [],
+      edges: [],
+      isExecuting: false,
+      executionStatus: 'idle',
+      logs: [],
+      statusMessage: '',
+      availableModels: [],
+      backendConnected: false,
+      ollamaConnected: false,
+      wsConnection: null,
+
+      onNodesChange: (changes: NodeChange[]) => {
+        set({ nodes: applyNodeChanges(changes, get().nodes) as FlowNode[] });
+        get().saveState();
+      },
+
+      onEdgesChange: (changes: EdgeChange[]) => {
+        set({ edges: applyEdgeChanges(changes, get().edges) });
+        get().saveState();
+      },
+
+      onConnect: (connection: Connection) => {
+        set({ edges: addEdge(connection, get().edges) });
+        get().saveState();
+      },
+
+      addNode: (type: string, position) => {
+        nodeIdCounter += 1;
+        const id = `${type}_${nodeIdCounter}`;
+        const labels: Record<string, string> = {
+          trigger: 'Trigger',
+          agent: 'Agent',
+          action: 'Action',
+          email_trigger: 'Email Trigger',
+          webhook_trigger: 'Webhook Trigger',
+          cron_trigger: 'Cron Schedule',
+          clipboard_trigger: 'Clipboard Monitor',
+          browser_action: 'Web Scraper',
+          subprocess_action: 'Code Runner',
+          memory_store: 'Memory Store',
+          memory_query: 'Memory Query',
+        };
+
+        const defaultData: Record<string, DagNodeData> = {
+          trigger: { label: labels[type], target_path: '' },
+          agent: { label: labels[type], model: '', prompt_template: '{{input}}' },
+          action: { label: labels[type], target_path: '' },
+          email_trigger: { label: labels[type], imap_port: 993, poll_interval: 60 },
+          webhook_trigger: { label: labels[type], webhook_id: '' },
+          cron_trigger: { label: labels[type], cron_interval_seconds: 3600 },
+          clipboard_trigger: { label: labels[type], clipboard_enabled: false },
+          browser_action: { label: labels[type], browser_headless: true },
+          subprocess_action: { label: labels[type], subprocess_runtime: 'bash' },
+          memory_store: { label: labels[type], memory_collection: 'default', memory_chunk_size: 512 },
+          memory_query: { label: labels[type], memory_collection: 'default', memory_top_k: 3, memory_inject_mode: 'prepend' },
+        };
+
+        const newNode: FlowNode = {
+          id,
+          type,
+          position: position || { x: 250, y: 100 + get().nodes.length * 180 },
+          data: defaultData[type],
+        };
+
+        set({ nodes: [...get().nodes, newNode] });
+        get().saveState();
+      },
+
+      updateNodeData: (nodeId, data) => {
+        set({
+          nodes: get().nodes.map((node) =>
+            node.id === nodeId ? { ...node, data: { ...node.data, ...data } } : node
+          ),
+        });
+        get().saveState();
+      },
+
+      removeNode: (nodeId) => {
+        set({
+          nodes: get().nodes.filter((n) => n.id !== nodeId),
+          edges: get().edges.filter((e) => e.source !== nodeId && e.target !== nodeId),
+          workflowId: `wf_${Date.now()}`, // invalidate cache on node removal
+        });
+        get().saveState();
+      },
+
+      // ─── Persistence ──────────────────────────────────
+      setAutomationName: (name: string) => set({ automationName: name }),
+
+      saveCurrentAutomation: () => {
+        const state = get();
+        if (!state.automationName) return;
+
+        const currentId = state.workflowId;
+        const newSaved: SavedBuilderAutomation = {
+          id: currentId,
+          name: state.automationName,
+          savedAt: Date.now(),
+          state: {
+            nodes: state.nodes,
+            edges: state.edges,
+          }
+        };
+
+        set(s => {
+          const exists = s.savedBuilderAutomations.findIndex(a => a.id === currentId);
+          let newAutomations;
+          if (exists >= 0) {
+            newAutomations = [...s.savedBuilderAutomations];
+            newAutomations[exists] = newSaved;
+          } else {
+            newAutomations = [...s.savedBuilderAutomations, newSaved];
+          }
+          return { savedBuilderAutomations: newAutomations };
+        });
+      },
+
+      loadAutomation: (id: string) => {
+        const state = get();
+        const saved = state.savedBuilderAutomations.find(a => a.id === id);
+        if (saved && saved.state) {
+          set({
+            workflowId: id,
+            automationName: saved.name,
+            nodes: saved.state.nodes,
+            edges: saved.state.edges,
+            isExecuting: false,
+            executionStatus: 'idle',
+            logs: [],
+          });
+          
+          // Update nodeIdCounter
+          const maxId = saved.state.nodes.reduce((max: number, n: FlowNode) => {
+            const parts = n.id.split('_');
+            const idNum = parseInt(parts[parts.length - 1], 10);
+            return !isNaN(idNum) && idNum > max ? idNum : max;
+          }, 0);
+          nodeIdCounter = maxId;
+        }
+      },
+
+      deleteAutomation: (id: string) => {
+        set(state => ({
+          savedBuilderAutomations: state.savedBuilderAutomations.filter(a => a.id !== id)
+        }));
+      },
+
+      // ─── Serialize to DAG JSON Schema ──────────────────
+      serializeToDAG: () => {
+        const { workflowId, nodes, edges } = get();
+        return {
+          workflow_id: workflowId,
+          nodes: nodes.map((n) => ({
+            id: n.id,
+            type: n.type as 'trigger' | 'agent' | 'action',
+            data: {
+              ...n.data,
+            },
+          })),
+          edges: edges.map((e) => ({
+            source: e.source,
+            target: e.target,
+          })),
+        };
+      },
+
+      exportJSON: () => {
+        return JSON.stringify(get().serializeToDAG(), null, 2);
+      },
+
+      saveState: async () => {
+        const { workflowId, nodes, edges } = get();
+        try {
+          await fetch(`${BACKEND_URL}/api/storage/save`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ state: { workflowId, nodes, edges } }),
+          });
+        } catch (e) {
+          console.warn("Autosave failed", e);
+        }
+      },
+
+      loadState: async () => {
+        try {
+          const res = await fetch(`${BACKEND_URL}/api/storage/load`);
+          const data = await res.json();
+          if (data.status === 'success' && data.state) {
+            set({
+              workflowId: data.state.workflowId || `wf_${Date.now()}`,
+              nodes: data.state.nodes || [],
+              edges: data.state.edges || [],
+            });
+            
+            // Update nodeIdCounter to avoid collisions
+            const maxId = (data.state.nodes || []).reduce((max: number, n: FlowNode) => {
+              const parts = n.id.split('_');
+              const idNum = parseInt(parts[parts.length - 1], 10);
+              return !isNaN(idNum) && idNum > max ? idNum : max;
+            }, 0);
+            nodeIdCounter = maxId;
+          }
+        } catch (e) {
+          console.warn("Failed to load initial state", e);
+        }
+      },
+
+      // ─── Deploy Workflow ────────────────────────────────
+      deployWorkflow: async (options) => {
+        const { bypassRam = false, forceStart = false } = options || {};
+        const { nodes, edges } = get();
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        
+        // 1. Health check & Auto-start
+        let isBackendRunning = false;
+        try {
+          const healthRes = await fetch(`${backendUrl}/engine-status`, { method: 'GET' });
+          if (healthRes.ok) isBackendRunning = true;
+        } catch (e) {
+          isBackendRunning = false;
+        }
+
+        if (!isBackendRunning) {
+          console.log("⚠️ Backend server not found. Attempting auto-start...");
+          try {
+            await fetch('/api/system/start-backend', { method: 'POST' });
+            
+            let retries = 10;
+            while (retries > 0) {
+              await new Promise(r => setTimeout(r, 1000));
+              try {
+                const check = await fetch(`${backendUrl}/engine-status`, { method: 'GET' });
+                if (check.ok) {
+                  isBackendRunning = true;
+                  console.log("✅ Backend server successfully started.");
+                  break;
+                }
+              } catch (e) {}
+              retries--;
+            }
+          } catch (e) {
+            console.error("Auto-start failed:", e);
+          }
+        }
+
+        if (!isBackendRunning && !forceStart) {
+          alert("The Backend Server could not be started automatically. Please run it manually from the terminal.");
+          return;
+        }
+
+        // 2. Prepare Workflow Data
+        const state = get();
+        if (state.isExecuting) return;
+
+        // Connect WebSocket first
+        state.connectWebSocket();
+
+        set({ isExecuting: true, executionStatus: 'running', logs: [] });
+
+        const dag = state.serializeToDAG();
+        const payload = {
+          ...dag,
+          bypass_ram_check: bypassRam || forceStart
+        };
+
+        // If there is a webhook node, register it to get a UUID
+        const webhookNodes = state.nodes.filter(n => n.type === 'webhook_trigger');
+        if (webhookNodes.length > 0) {
+          try {
+            const whRes = await fetch(`${BACKEND_URL}/api/webhook/register`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+            if (whRes.ok) {
+              const whData = await whRes.json();
+              // Update the first webhook node with this ID locally
+              get().updateNodeData(webhookNodes[0].id, { webhook_id: whData.webhook_id });
+              payload.workflow_id = whData.webhook_id; // Match backend expectations
+            }
+          } catch (e) {
+            console.warn("Webhook registration failed", e);
+          }
+        }
+
+        try {
+          const response = await fetch(`${BACKEND_URL}/execute-graph`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+
+          if (!response.ok) {
+            const error = await response.json();
+            set({
+              isExecuting: false,
+              executionStatus: 'failed',
+            });
+            get().appendLog({
+              timestamp: new Date().toISOString(),
+              node_id: 'system',
+              level: 'ERROR',
+              message: `Deploy failed: ${error.detail || 'Unknown error'}`,
+            });
+            return;
+          }
+
+          const result = await response.json();
+          get().appendLog({
+            timestamp: new Date().toISOString(),
+            node_id: 'system',
+            level: 'INFO',
+            message: `Workflow ${result.workflow_id} ${result.status}: ${result.message}`,
+          });
+        } catch (error) {
+          set({ isExecuting: false, executionStatus: 'failed' });
+          get().appendLog({
+            timestamp: new Date().toISOString(),
+            node_id: 'system',
+            level: 'ERROR',
+            message: `Connection failed: ${error instanceof Error ? error.message : 'Backend unreachable'}`,
+          });
+        }
+      },
+
+      stopWorkflow: async () => {
+        try {
+          const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+          await fetch(`${backendUrl}/stop-engine`, { method: 'POST' });
+          set({ isExecuting: false, executionStatus: 'failed' });
+          get().appendLog({
+            timestamp: new Date().toISOString(),
+            node_id: 'system',
+            level: 'WARN',
+            message: '🛑 Workflow forcibly stopped by user',
+          });
+        } catch (error) {
+          console.error("Failed to stop workflow:", error);
+        }
+      },
+
+      // ─── WebSocket Connection ───────────────────────────
+      connectWebSocket: () => {
+        const existing = get().wsConnection;
+        if (existing && existing.readyState === WebSocket.OPEN) return;
+
+        try {
+          const ws = new WebSocket(WS_URL);
+
+          ws.onopen = () => {
+            set({ wsConnection: ws });
+          };
+
+          ws.onmessage = (event) => {
+            try {
+              const data = JSON.parse(event.data);
+
+              // Handle system events
+              if (data.type === 'ollama_offline') {
+                get().appendLog({ timestamp: new Date().toISOString(), node_id: 'system', level: 'WARN', message: '🛌 AI Engine offline. Please open Ollama.' });
+                set({ statusMessage: '🛌 AI Engine is offline. Please open Ollama on your Mac.' });
+                return;
+              }
+
+              const log: LogEntry = data;
+              get().appendLog(log);
+
+              // Derive human-readable status from log message
+              const msg = log.message || '';
+              let status = '';
+              if (msg.includes('TRIGGER') && msg.includes('Reading')) status = '📂 Reading files from your disk...';
+              else if (msg.includes('AGENT') && msg.includes('Connecting')) status = '🧠 Preparing the local neural core...';
+              else if (msg.includes('Streaming')) status = '✨ The AI is processing your request...';
+              else if (msg.includes('Written') || msg.includes('Output saved')) status = '✅ Finished! Your results have been saved.';
+              else if (msg.includes('completed successfully')) status = '✅ Workflow complete!';
+              else if (msg.includes('FAILED') || msg.includes('Error')) status = '❌ Something went wrong. Check logs below.';
+              if (status) set({ statusMessage: status });
+
+              // Detect workflow completion
+              if (msg.includes('completed successfully')) {
+                set({ isExecuting: false, executionStatus: 'completed' });
+              } else if (msg.includes('FAILED')) {
+                set({ isExecuting: false, executionStatus: 'failed' });
+              }
+            } catch {
+              get().appendLog({ timestamp: new Date().toISOString(), node_id: 'system', level: 'INFO', message: event.data });
+            }
+          };
+
+          ws.onerror = () => {
+            get().appendLog({
+              timestamp: new Date().toISOString(),
+              node_id: 'system',
+              level: 'ERROR',
+              message: 'WebSocket connection error',
+            });
+          };
+
+          ws.onclose = () => {
+            set({ wsConnection: null });
+          };
+
+          set({ wsConnection: ws });
+        } catch {
+          // WebSocket not available
+        }
+      },
+
+      disconnectWebSocket: () => {
+        const ws = get().wsConnection;
+        if (ws) {
+          ws.close();
+          set({ wsConnection: null });
+        }
+      },
+
+      // ─── Log Management ─────────────────────────────────
+      appendLog: (log) => {
+        set({ logs: [...get().logs, log].slice(-1000) });
+      },
+
+      clearLogs: () => {
+        set({ logs: [] });
+      },
+
+      // ─── Fetch Available Models ─────────────────────────
+      fetchModels: async () => {
+        try {
+          const response = await fetch(`${BACKEND_URL}/api/models`);
+          if (response.ok) {
+            const models = await response.json();
+            set({ availableModels: models });
+          }
+        } catch {
+          set({ availableModels: [] });
+        }
+      },
+
+      // ─── Health Check ───────────────────────────────────
+      checkHealth: async () => {
+        try {
+          const response = await fetch(`${BACKEND_URL}/api/health`);
+          if (response.ok) {
+            const data = await response.json();
+            set({
+              backendConnected: true,
+              ollamaConnected: data.ollama === 'connected',
+            });
+          } else {
+            set({ backendConnected: false, ollamaConnected: false });
+          }
+        } catch {
+          set({ backendConnected: false, ollamaConnected: false });
+        }
+      },
+    }),
+    {
+      name: 'neuralflow-builder-storage',
+      partialize: (state) => ({
+        automationName: state.automationName,
+        savedBuilderAutomations: state.savedBuilderAutomations,
+      }),
+    }
+  )
+);
+
+export default useFlowStore;
+
+
+=========================================
+FILE: frontend/src/store/workflowStore.ts
+=========================================
+
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+export interface AiTask {
+  role: string;
+  task: string;
+  format: string;
+  model: string;
+  delaySeconds: number;
+}
+
+export interface RunHistoryEntry {
+  id: string;
+  timestamp: number;
+  status: 'completed' | 'failed';
+  summary: string;
+  automationName: string;
+  details?: {
+    totalTimeSeconds?: number;
+    itemsProcessed?: number;
+    itemsGenerated?: number;
+    targetPath?: string;
+  };
+}
+
+export interface SavedAutomation {
+  id: string;
+  name: string;
+  savedAt: number;
+  state: Partial<WorkflowState>;
+}
+
+export interface WorkflowTemplate {
+  triggerType: 'email' | 'folder' | 'file';
+  email?: string;
+  aiTasks: AiTask[];
+  targetPathHint?: string;
+  automationName: string;
+}
+
+interface WorkflowState {
+  // Persistence & Naming
+  automationId: string | null;
+  setAutomationId: (id: string | null) => void;
+  automationName: string;
+  setAutomationName: (name: string) => void;
+  lastSavedAt: number | null;
+  savedAutomations: SavedAutomation[];
+  saveCurrentAutomation: () => void;
+  loadAutomation: (id: string) => void;
+  deleteAutomation: (id: string) => void;
+  loadTemplate: (template: WorkflowTemplate) => void;
+
+  step: number;
+  setStep: (step: number) => void;
+
+  triggerType: 'email' | 'folder' | 'file' | null;
+  setTriggerType: (type: 'email' | 'folder' | 'file' | null) => void;
+
+  email: string;
+  setEmail: (email: string) => void;
+  appPassword: string;
+  setAppPassword: (pw: string) => void;
+  itemCount: string;
+  setItemCount: (count: string) => void;
+  sourcePath: string;
+  setSourcePath: (path: string) => void;
+
+  // Multi-step AI Routing
+  topology: 'pipeline_final' | 'pipeline_all' | 'parallel';
+  setTopology: (topology: 'pipeline_final' | 'pipeline_all' | 'parallel') => void;
+  outputStrategy: 'single_file' | 'separate_files' | 'separate_folders';
+  setOutputStrategy: (strategy: 'single_file' | 'separate_files' | 'separate_folders') => void;
+
+  // AI Tasks & Undo
+  aiTasks: AiTask[];
+  setAiTasks: (tasks: AiTask[]) => void;
+  updateAiTask: (index: number, task: Partial<AiTask>) => void;
+  addAiTask: () => void;
+  removeAiTask: (index: number) => void;
+  reorderAiTasks: (fromIndex: number, toIndex: number) => void;
+  undoStack: AiTask[][];
+  pushUndo: () => void;
+  undo: () => void;
+
+  // Schedule
+  scheduleEnabled: boolean;
+  setScheduleEnabled: (enabled: boolean) => void;
+  schedulePreset: 'every5min' | 'hourly' | 'daily' | 'weekly' | 'weekdays' | 'custom';
+  setSchedulePreset: (preset: 'every5min' | 'hourly' | 'daily' | 'weekly' | 'weekdays' | 'custom') => void;
+  cronExpression: string;
+  setCronExpression: (expr: string) => void;
+
+  // Notifications
+  notifyOnRun: boolean;
+  setNotifyOnRun: (notify: boolean) => void;
+  notifyEmail: string;
+  setNotifyEmail: (email: string) => void;
+
+  targetPath: string;
+  setTargetPath: (path: string) => void;
+  outputFormat: string;
+  setOutputFormat: (format: string) => void;
+
+  // Execution State (Not persisted typically, but zustand/persist handles this via partialize if needed, though here we just reset it on load)
+  isExecuting: boolean;
+  setIsExecuting: (isExecuting: boolean) => void;
+  
+  logs: string[];
+  addLog: (log: string) => void;
+  clearLogs: () => void;
+
+  executionStatus: 'running' | 'completed' | 'failed' | null;
+  setExecutionStatus: (status: 'running' | 'completed' | 'failed' | null) => void;
+
+  completedNodes: number;
+  setCompletedNodes: (nodes: number | ((prev: number) => number)) => void;
+
+  totalNodes: number;
+  setTotalNodes: (nodes: number) => void;
+  
+  nodeStatuses: Record<string, 'idle' | 'running' | 'completed' | 'error'>;
+  updateNodeStatus: (nodeId: string, status: 'idle' | 'running' | 'completed' | 'error') => void;
+
+  // Run History
+  runHistory: RunHistoryEntry[];
+  addRunHistoryEntry: (entry: Omit<RunHistoryEntry, 'id' | 'timestamp'>) => void;
+
+  reset: () => void;
+}
+
+const initialAiTask: AiTask = { role: '', task: '', format: '', model: 'qwen2.5:0.5b', delaySeconds: 0 };
+
+export const useWorkflowStore = create<WorkflowState>()(
+  persist(
+    (set, get) => ({
+      automationId: null,
+      setAutomationId: (id) => set({ automationId: id }),
+      automationName: '',
+      setAutomationName: (name) => set({ automationName: name }),
+      lastSavedAt: null,
+      savedAutomations: [],
+      saveCurrentAutomation: () => {
+        const state = get();
+        if (!state.automationName) return;
+        
+        let currentId = state.automationId;
+        if (!currentId) {
+          currentId = `auto_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+          set({ automationId: currentId });
+        }
+
+        const newSaved: SavedAutomation = {
+          id: currentId,
+          name: state.automationName,
+          savedAt: Date.now(),
+          state: {
+            automationName: state.automationName,
+            triggerType: state.triggerType,
+            email: state.email,
+            appPassword: state.appPassword,
+            itemCount: state.itemCount,
+            sourcePath: state.sourcePath,
+            topology: state.topology,
+            outputStrategy: state.outputStrategy,
+            aiTasks: state.aiTasks,
+            scheduleEnabled: state.scheduleEnabled,
+            schedulePreset: state.schedulePreset,
+            cronExpression: state.cronExpression,
+            notifyOnRun: state.notifyOnRun,
+            notifyEmail: state.notifyEmail,
+            targetPath: state.targetPath
+          }
+        };
+
+        set(s => {
+          const exists = s.savedAutomations.findIndex(a => a.id === currentId);
+          let newAutomations;
+          if (exists >= 0) {
+            newAutomations = [...s.savedAutomations];
+            newAutomations[exists] = newSaved;
+          } else {
+            newAutomations = [...s.savedAutomations, newSaved];
+          }
+          return {
+            savedAutomations: newAutomations,
+            lastSavedAt: Date.now()
+          };
+        });
+      },
+      loadAutomation: (id) => {
+        const state = get();
+        const saved = state.savedAutomations.find(a => a.id === id);
+        if (saved && saved.state) {
+          set({ ...saved.state, automationId: id, step: 1, isExecuting: false, executionStatus: null, logs: [], nodeStatuses: {} });
+        }
+      },
+      deleteAutomation: (id: string) => {
+        set(state => ({
+          savedAutomations: state.savedAutomations.filter(a => a.id !== id)
+        }));
+      },
+      loadTemplate: (template) => {
+        set({
+          automationId: null,
+          automationName: template.automationName,
+          triggerType: template.triggerType,
+          email: template.email || '',
+          itemCount: '1',
+          topology: 'pipeline_final',
+          outputStrategy: 'single_file',
+          aiTasks: template.aiTasks,
+          targetPath: template.targetPathHint || '',
+          step: 1,
+          isExecuting: false,
+          executionStatus: null,
+          logs: [],
+          nodeStatuses: {},
+          scheduleEnabled: false,
+          schedulePreset: 'every5min',
+          cronExpression: '*/5 * * * *',
+          notifyOnRun: false,
+          notifyEmail: template.email || '',
+          undoStack: []
+        });
+      },
+
+      step: 1,
+      setStep: (step) => set({ step }),
+
+      triggerType: null,
+      setTriggerType: (triggerType) => set({ triggerType }),
+
+      email: '',
+      setEmail: (email) => set({ email }),
+      appPassword: '',
+      setAppPassword: (appPassword) => set({ appPassword }),
+      itemCount: '1',
+      setItemCount: (itemCount) => set({ itemCount }),
+      sourcePath: '',
+      setSourcePath: (sourcePath) => set({ sourcePath }),
+
+      topology: 'pipeline_final',
+      setTopology: (topology) => set({ topology }),
+      outputStrategy: 'single_file',
+      setOutputStrategy: (outputStrategy) => set({ outputStrategy }),
+
+      aiTasks: [{ ...initialAiTask }],
+      setAiTasks: (aiTasks) => {
+        get().pushUndo();
+        set({ aiTasks });
+      },
+      updateAiTask: (index, updatedTask) => set((state) => {
+        const newTasks = [...state.aiTasks];
+        newTasks[index] = { ...newTasks[index], ...updatedTask };
+        return { aiTasks: newTasks };
+      }),
+      addAiTask: () => set((state) => {
+        state.pushUndo();
+        return { aiTasks: [...state.aiTasks, { ...initialAiTask }] };
+      }),
+      removeAiTask: (index) => set((state) => {
+        state.pushUndo();
+        return { aiTasks: state.aiTasks.filter((_, i) => i !== index) };
+      }),
+      reorderAiTasks: (fromIndex, toIndex) => set((state) => {
+        state.pushUndo();
+        const newTasks = [...state.aiTasks];
+        const [movedTask] = newTasks.splice(fromIndex, 1);
+        newTasks.splice(toIndex, 0, movedTask);
+        return { aiTasks: newTasks };
+      }),
+      undoStack: [],
+      pushUndo: () => set((state) => {
+        const newStack = [...state.undoStack, [...state.aiTasks]];
+        if (newStack.length > 20) newStack.shift(); // Max 20 states
+        return { undoStack: newStack };
+      }),
+      undo: () => set((state) => {
+        if (state.undoStack.length === 0) return {};
+        const newStack = [...state.undoStack];
+        const previousTasks = newStack.pop()!;
+        return { aiTasks: previousTasks, undoStack: newStack };
+      }),
+
+      scheduleEnabled: false,
+      setScheduleEnabled: (enabled) => set({ scheduleEnabled: enabled }),
+      schedulePreset: 'every5min',
+      setSchedulePreset: (preset) => set({ schedulePreset: preset }),
+      cronExpression: '*/5 * * * *',
+      setCronExpression: (expr) => set({ cronExpression: expr }),
+
+      notifyOnRun: false,
+      setNotifyOnRun: (notify) => set({ notifyOnRun: notify }),
+      notifyEmail: '',
+      setNotifyEmail: (email) => set({ notifyEmail: email }),
+
+      targetPath: '',
+      setTargetPath: (path) => set({ targetPath: path }),
+
+      outputFormat: 'Plain Text',
+      setOutputFormat: (format) => set({ outputFormat: format }),
+
+      isExecuting: false,
+      setIsExecuting: (isExecuting) => set({ isExecuting }),
+
+      logs: [],
+      addLog: (log) => set((state) => ({ logs: [...state.logs, log] })),
+      clearLogs: () => set({ logs: [] }),
+
+      executionStatus: null,
+      setExecutionStatus: (executionStatus) => set({ executionStatus }),
+
+      completedNodes: 0,
+      setCompletedNodes: (val) => set((state) => ({ 
+        completedNodes: typeof val === 'function' ? val(state.completedNodes) : val 
+      })),
+
+      totalNodes: 0,
+      setTotalNodes: (totalNodes) => set({ totalNodes }),
+
+      nodeStatuses: {},
+      updateNodeStatus: (nodeId, status) => set((state) => ({
+        nodeStatuses: { ...state.nodeStatuses, [nodeId]: status }
+      })),
+
+      runHistory: [],
+      addRunHistoryEntry: (entry) => set((state) => {
+        const newEntry: RunHistoryEntry = {
+          ...entry,
+          id: `run_${Date.now()}`,
+          timestamp: Date.now()
+        };
+        const newHistory = [newEntry, ...state.runHistory];
+        if (newHistory.length > 10) newHistory.pop(); // Keep last 10
+        return { runHistory: newHistory };
+      }),
+      reset: () => set({
+        automationId: null,
+        automationName: '',
+        step: 1,
+        triggerType: null,
+        email: '',
+        appPassword: '',
+        itemCount: '1',
+        sourcePath: '',
+        topology: 'pipeline_final',
+        outputStrategy: 'single_file',
+        aiTasks: [{ ...initialAiTask }],
+        targetPath: '',
+        scheduleEnabled: false,
+        schedulePreset: 'every5min',
+        cronExpression: '*/5 * * * *',
+        notifyOnRun: false,
+        notifyEmail: '',
+        isExecuting: false,
+        logs: [],
+        executionStatus: null,
+        completedNodes: 0,
+        totalNodes: 0,
+        nodeStatuses: {},
+        undoStack: []
+      })
+    }),
+    {
+      name: 'neuralflow-standard-storage',
+      partialize: (state) => ({
+        automationName: state.automationName,
+        savedAutomations: state.savedAutomations,
+        runHistory: state.runHistory,
+        triggerType: state.triggerType,
+        email: state.email,
+        appPassword: state.appPassword,
+        sourcePath: state.sourcePath,
+        aiTasks: state.aiTasks,
+        targetPath: state.targetPath,
+        scheduleEnabled: state.scheduleEnabled,
+        schedulePreset: state.schedulePreset,
+        cronExpression: state.cronExpression,
+        notifyOnRun: state.notifyOnRun,
+        notifyEmail: state.notifyEmail
+      }),
+    }
+  )
+);
+
+
+=========================================
+FILE: frontend/src/components/ui/Canvas.tsx
+=========================================
+
+'use client';
+
+/**
+ * Canvas v2 — Expanded workspace with cross grid, glowing edges, better zoom range.
+ */
+
+import React, { useCallback, useRef, useMemo } from 'react';
+import {
+  ReactFlow,
+  Background,
+  BackgroundVariant,
+  Controls,
+  MiniMap,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+
+import useFlowStore from '@/store/flowStore';
+import useThemeStore from '@/store/themeStore';
+import TriggerNode from '@/components/nodes/TriggerNode';
+import AgentNode from '@/components/nodes/AgentNode';
+import ActionNode from '@/components/nodes/ActionNode';
+import EmailTriggerNode from '@/components/nodes/EmailTriggerNode';
+import WebhookTriggerNode from '@/components/nodes/WebhookTriggerNode';
+import BrowserActionNode from '@/components/nodes/BrowserActionNode';
+import MemoryStoreNode from '@/components/nodes/MemoryStoreNode';
+import MemoryQueryNode from '@/components/nodes/MemoryQueryNode';
+import SubprocessActionNode from '@/components/nodes/SubprocessActionNode';
+import CronTriggerNode from '@/components/nodes/CronTriggerNode';
+import ClipboardTriggerNode from '@/components/nodes/ClipboardTriggerNode';
+
+const nodeTypes = {
+  trigger: TriggerNode,
+  agent: AgentNode,
+  action: ActionNode,
+  email_trigger: EmailTriggerNode,
+  webhook_trigger: WebhookTriggerNode,
+  cron_trigger: CronTriggerNode,
+  clipboard_trigger: ClipboardTriggerNode,
+  browser_action: BrowserActionNode,
+  subprocess_action: SubprocessActionNode,
+  memory_store: MemoryStoreNode,
+  memory_query: MemoryQueryNode,
+};
+
+export default function Canvas() {
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+  const mode = useThemeStore((s) => s.mode);
+  const isDark = mode === 'dark';
+
+  const nodes = useFlowStore((s) => s.nodes);
+  const edges = useFlowStore((s) => s.edges);
+  const onNodesChange = useFlowStore((s) => s.onNodesChange);
+  const onEdgesChange = useFlowStore((s) => s.onEdgesChange);
+  const onConnect = useFlowStore((s) => s.onConnect);
+  const addNode = useFlowStore((s) => s.addNode);
+  const loadState = useFlowStore((s) => s.loadState);
+
+  React.useEffect(() => {
+    loadState();
+  }, [loadState]);
+
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+      const type = event.dataTransfer.getData('application/neuralflow-node');
+      if (!type || !reactFlowWrapper.current) return;
+      const bounds = reactFlowWrapper.current.getBoundingClientRect();
+      addNode(type as "trigger" | "agent" | "action", {
+        x: event.clientX - bounds.left - 170,
+        y: event.clientY - bounds.top - 40,
+      });
+    },
+    [addNode]
+  );
+
+  const defaultEdgeOptions = useMemo(() => ({
+    type: 'smoothstep',
+    animated: true,
+    style: {
+      stroke: isDark ? 'rgba(34,211,238,0.3)' : 'rgba(8,145,178,0.3)',
+      strokeWidth: 2,
+    },
+  }), [isDark]);
+
+  const bgColor   = isDark ? '#030712' : '#f8fafc';
+  const lineColor = isDark ? 'rgba(34,211,238,0.04)' : 'rgba(14,165,233,0.06)';
+  const dotColor  = isDark ? 'rgba(255,255,255,0.035)' : 'rgba(15,23,42,0.06)';
+
+  return (
+    <div ref={reactFlowWrapper} className="w-full h-full relative" style={{ background: bgColor }}>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        onDragOver={onDragOver}
+        onDrop={onDrop}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        nodeTypes={nodeTypes as any}
+        defaultEdgeOptions={defaultEdgeOptions}
+        fitView
+        fitViewOptions={{ padding: 0.25, maxZoom: 1 }}
+        minZoom={0.15}
+        maxZoom={2.5}
+        proOptions={{ hideAttribution: true }}
+        className="neuralflow-canvas"
+        snapToGrid={true}
+        snapGrid={[24, 24]}
+        deleteKeyCode={['Backspace', 'Delete']}
+      >
+        {/* Grid background — subtle cross lines */}
+        <Background
+          variant={BackgroundVariant.Lines}
+          gap={48}
+          size={0.5}
+          color={lineColor}
+        />
+
+        {/* Secondary dot overlay for depth */}
+        <Background
+          variant={BackgroundVariant.Dots}
+          gap={24}
+          size={0.8}
+          color={dotColor}
+        />
+
+        {/* Controls */}
+        <Controls
+          className="!rounded-xl !overflow-hidden !border !border-white/5"
+          style={{
+            background: isDark ? 'rgba(4,9,20,0.97)' : 'rgba(241,245,249,0.98)',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+            bottom: 24,
+            left: 20,
+          }}
+        />
+
+        {/* MiniMap */}
+        <MiniMap
+          style={{
+            background: isDark ? 'rgba(4,9,20,0.97)' : 'rgba(241,245,249,0.97)',
+            border: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : 'rgba(15,23,42,0.1)'}`,
+            borderRadius: 12,
+          }}
+          nodeColor={(node) => {
+            switch (node.type) {
+              case 'trigger': return isDark ? '#fbbf24' : '#d97706';
+              case 'agent':   return isDark ? '#22d3ee' : '#0891b2';
+              case 'action':  return isDark ? '#c084fc' : '#7c3aed';
+              case 'email_trigger': return '#f97316';
+              case 'webhook_trigger': return '#22c55e';
+              case 'cron_trigger': return '#a78bfa';
+              case 'clipboard_trigger': return '#f472b6';
+              case 'browser_action': return '#38bdf8';
+              case 'subprocess_action': return '#f87171';
+              case 'memory_store': return '#2dd4bf';
+              case 'memory_query': return '#818cf8';
+              default:        return '#475569';
+            }
+          }}
+          maskColor={isDark ? 'rgba(3,7,18,0.75)' : 'rgba(248,250,252,0.65)'}
+        />
+      </ReactFlow>
+    </div>
+  );
+}
+

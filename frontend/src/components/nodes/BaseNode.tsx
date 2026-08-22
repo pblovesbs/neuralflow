@@ -18,6 +18,8 @@ interface BaseNodeProps {
   label: React.ReactNode;
   nodeType: string;
   badge?: string;            // optional small pill badge text
+  tainted?: boolean;         // true if the node output was skipped/degraded
+  onFlagOutput?: () => void; // Flag for anti-memory
 }
 
 export default function BaseNode({
@@ -30,6 +32,8 @@ export default function BaseNode({
   label,
   nodeType,
   badge,
+  tainted = false,
+  onFlagOutput,
 }: BaseNodeProps) {
   return (
     <div
@@ -92,6 +96,23 @@ export default function BaseNode({
 
         {/* Badge / Active indicator */}
         <div className="ml-auto flex items-center gap-2">
+          {onFlagOutput && (
+            <button
+              onClick={onFlagOutput}
+              className="text-[10px] bg-[var(--nf-accent-red)]/10 text-[var(--nf-accent-red)] px-1.5 py-0.5 rounded border border-[var(--nf-accent-red)]/20 hover:bg-[var(--nf-accent-red)]/20 transition-colors"
+              title="Flag this output as a failure (Anti-Memory)"
+            >
+              🚩 Flag
+            </button>
+          )}
+          {tainted && (
+            <span
+              className="text-[9px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1 uppercase tracking-wide border border-yellow-500/30 bg-yellow-500/10 text-yellow-500"
+              title="This node was skipped during execution. Downstream data may be degraded."
+            >
+              ⚠️ Tainted
+            </span>
+          )}
           {badge && (
             <span
               className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wide"

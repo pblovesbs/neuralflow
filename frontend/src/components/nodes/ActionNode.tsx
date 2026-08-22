@@ -52,8 +52,10 @@ export default function ActionNode({ id, data, selected }: NodeProps) {
         setPendingPath(data.path);
         setTypedPath(data.path);
         setShowPermission(true);
+      } else {
+        alert("Failed to open native file picker. Ensure the backend is running in your local terminal and not a restricted background process.");
       }
-    } catch { /* manual input fallback */ }
+    } catch (error) { /* manual input fallback */ }
   }, []);
 
   const handleAllow = useCallback(() => {
@@ -108,6 +110,7 @@ export default function ActionNode({ id, data, selected }: NodeProps) {
         label="Save Results"
         nodeType="Step 3"
         badge={hasPath ? "Output Set" : undefined}
+        tainted={data.tainted as boolean}
       >
         <div className="space-y-3">
           <div>

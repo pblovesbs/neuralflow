@@ -10,10 +10,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import execute, models, websocket, system, webhooks, storage, wizard
+from api.routes import execute, models, websocket, system, webhooks, storage, wizard, feedback
 from core.ollama_manager import auto_start_ollama
 from core.cron_scheduler import start_scheduler, stop_scheduler
 from core.clipboard_monitor import start_monitor, stop_monitor
+from core.auth import APIKeyMiddleware
+import os
 
 
 @asynccontextmanager
@@ -98,6 +100,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add API Key Auth (local shared secret)
+API_KEY = os.getenv("NEURALFLOW_API_KEY", "nf-local-dev-key")
+app.add_middleware(APIKeyMiddleware, api_key=API_KEY)
+
 # Mount routes
 app.include_router(execute.router, tags=["Execution"])
 app.include_router(models.router, tags=["Models"])
@@ -106,6 +112,7 @@ app.include_router(system.router, tags=["System"])
 app.include_router(webhooks.router, tags=["Webhooks"])
 app.include_router(storage.router, tags=["Storage"])
 app.include_router(wizard.router, prefix="/api/wizard", tags=["Wizard"])
+app.include_router(feedback.router, tags=["Feedback"])
 
 
 @app.get("/")

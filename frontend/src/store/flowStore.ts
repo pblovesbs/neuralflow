@@ -23,6 +23,7 @@ import type {
   OllamaModel,
   ExecutionStatusType,
   DagNodeData,
+  FeedbackPrompt,
 } from '@/types/dag';
 
 const BACKEND_URL = 'http://localhost:8000';
@@ -36,6 +37,33 @@ export interface SavedBuilderAutomation {
     nodes: FlowNode[];
     edges: FlowEdge[];
   };
+}
+
+export interface ActionableErrorPayload {
+  error_code: string;
+  title: string;
+  message: string;
+  action_label: string;
+  action_type: 'api_call' | 'input_form' | 'redirect';
+  action_endpoint?: string;
+  action_payload?: Record<string, unknown>;
+  manual_command?: string;
+  resumable: boolean;
+  node_id?: string;
+  workflow_id?: string;
+}
+
+export interface RecoveryPromptPayload {
+  workflow_id: string;
+  node_id: string;
+  reason: string;
+  violation: {
+    module_name: string;
+    message: string;
+    req_vram?: number;
+    available_vram?: number;
+  };
+  original_output?: string;
 }
 
 interface FlowStore {
@@ -54,6 +82,26 @@ interface FlowStore {
   wsConnection: WebSocket | null;
 
   statusMessage: string;
+
+  // ─── Actionable Errors ──────────────────────────────
+  actionableError: ActionableErrorPayload | null;
+  clearActionableError: () => void;
+  resumeWorkflow: (workflowId: string, nodeId: string) => Promise<void>;
+
+  // ─── HITL Recovery ──────────────────────────────────
+  recoveryPrompt: RecoveryPromptPayload | null;
+  resolveRecovery: (action: 'retry' | 'edit' | 'skip' | 'whitelist' | 'force_free' | 'fallback', editedOutput?: string) => Promise<void>;
+  dismissRecovery: () => void;
+
+  // ─── Resilience Feedback ────────────────────────────
+  feedbackPrompt: FeedbackPrompt | null;
+  submitFeedback: (rating: number, category: 'recovery_worked' | 'output_quality', comment?: string) => Promise<void>;
+  dismissFeedback: () => void;
+
+  // ─── Global Notifications ───────────────────────────
+  aiKilledMessage: string | null;
+  showAiKilledToast: (msg: string) => void;
+  hideAiKilledToast: () => void;
 
   // ─── Node/Edge Handlers ───────────────────────────
   onNodesChange: (changes: NodeChange[]) => void;
@@ -109,6 +157,96 @@ const useFlowStore = create<FlowStore>()(
       backendConnected: false,
       ollamaConnected: false,
       wsConnection: null,
+
+      // ─── HITL Recovery ──────────────────────────────────
+      recoveryPrompt: null,
+      resolveRecovery: async (action, editedOutput) => {
+        const { recoveryPrompt, updateNodeData } = get();
+        if (!recoveryPrompt) return;
+
+        const res = await fetch(`${BACKEND_URL}/recovery/resolve`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            workflow_id: recoveryPrompt.workflow_id,
+            node_id: recoveryPrompt.node_id,
+            action,
+            edited_output: editedOutput
+          })
+        });
+        
+        if (!res.ok) {
+          if (res.status === 404) {
+            // The backend restarted or lost track of this session.
+            // Dismiss the modal gracefully instead of crashing the UI.
+            set({ recoveryPrompt: null, isExecuting: false });
+            console.warn("The backend lost track of this pause. The workflow likely stopped or the server restarted.");
+            return;
+          }
+          throw new Error(`Server returned ${res.status}`);
+        }
+
+        // If the user skipped, mark the node as tainted for visual warnings downstream
+        if (action === 'skip') {
+          updateNodeData(recoveryPrompt.node_id, { tainted: true });
+        }
+        set({ recoveryPrompt: null });
+      },
+
+      dismissRecovery: () => set({ recoveryPrompt: null }),
+
+      // ─── Resilience Feedback ────────────────────────────
+      feedbackPrompt: null,
+
+      // ─── Actionable Errors ──────────────────────────────
+      actionableError: null,
+      clearActionableError: () => set({ actionableError: null }),
+      resumeWorkflow: async (workflowId: string, nodeId: string) => {
+        try {
+          await fetch(`${BACKEND_URL}/recovery/resolve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              workflow_id: workflowId,
+              node_id: nodeId,
+              action: 'retry'
+            }),
+          });
+        } catch (err) {
+          console.error('Failed to resume workflow:', err);
+        }
+      },
+      submitFeedback: async (rating, category, comment) => {
+        const { feedbackPrompt } = get();
+        if (!feedbackPrompt) return;
+        
+        try {
+          await fetch(`${BACKEND_URL}/api/feedback`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              workflow_id: feedbackPrompt.workflow_id,
+              rating,
+              category,
+              comment,
+              resilience_events: feedbackPrompt.resilience_events
+            }),
+          });
+        } catch (e) {
+          console.warn('Failed to submit feedback', e);
+        }
+        set({ feedbackPrompt: null });
+      },
+
+      dismissFeedback: () => set({ feedbackPrompt: null }),
+
+      // ─── Global Notifications ───────────────────────────
+      aiKilledMessage: null,
+      showAiKilledToast: (msg) => {
+        set({ aiKilledMessage: msg });
+        setTimeout(() => set({ aiKilledMessage: null }), 3500);
+      },
+      hideAiKilledToast: () => set({ aiKilledMessage: null }),
 
       onNodesChange: (changes: NodeChange[]) => {
         set({ nodes: applyNodeChanges(changes, get().nodes) as FlowNode[] });
@@ -460,6 +598,24 @@ const useFlowStore = create<FlowStore>()(
               if (data.type === 'ollama_offline') {
                 get().appendLog({ timestamp: new Date().toISOString(), node_id: 'system', level: 'WARN', message: '🛌 AI Engine offline. Please open Ollama.' });
                 set({ statusMessage: '🛌 AI Engine is offline. Please open Ollama on your Mac.' });
+                return;
+              }
+
+              // Handle resilience feedback prompt
+              if (data.type === 'feedback_prompt') {
+                set({ feedbackPrompt: data as FeedbackPrompt });
+                return;
+              }
+
+              // Handle actionable error
+              if (data.type === 'actionable_error') {
+                set({ actionableError: data.payload as ActionableErrorPayload });
+                return;
+              }
+
+              // Handle HITL Recovery
+              if (data.type === 'recovery_required') {
+                set({ recoveryPrompt: data as RecoveryPromptPayload });
                 return;
               }
 

@@ -1,0 +1,118 @@
+NEURALFLOW: THE ULTIMATE SOLO DEVELOPER MASTERCLASS ROADMAP
+===========================================================
+This is a highly curated, deeply detailed curriculum designed to take you from zero to being able to build a complex, real-time, AI-driven application like NeuralFlow entirely by yourself.
+
+-----------------------------------------------------------
+PHASE 1: THE FOUNDATIONAL PILLARS (Frontend & Backend Basics)
+-----------------------------------------------------------
+To build anything, you must first master the raw languages before touching frameworks.
+
+1. HTML5 (Semantic Architecture)
+   - What to learn: The Document Object Model (DOM), semantic tags (<main>, <section>, <nav>), and how browsers render elements.
+   - Why for NeuralFlow: It forms the structural skeleton of the presentation layer and the web app.
+
+2. Vanilla CSS3 (Advanced Styling & Aesthetics)
+   - What to learn: 
+     * Flexbox & CSS Grid: Absolutely critical for the complex layouts of the Canvas UI, sidebar, and toolbars.
+     * CSS Variables (--color-primary): Used to create the dark mode theme across the app.
+     * Keyframe Animations & Transitions: Used for the "throbbing" buttons, the scrolling terminal text, and the glass-morphism (backdrop-filter: blur) effects.
+     * Responsive Design: Media queries (@media) for making the app work on mobile devices.
+
+3. Advanced JavaScript (ES6+)
+   - What to learn: 
+     * Arrow functions, destructuring, template literals, and the spread operator.
+     * The Event Loop and Asynchronous Programming: Promises, `async/await`, and `fetch()`. This is non-negotiable for communicating with the backend.
+     * Array manipulation: `map()`, `filter()`, `reduce()` (Used constantly when rendering node lists or execution logs).
+
+4. Python 3.x (Core Backend Logic)
+   - What to learn: 
+     * Dictionaries, Lists, Sets, and Tuples.
+     * Object-Oriented Programming (OOP): Classes and inheritance.
+     * Exception Handling (`try/except` blocks) to prevent the server from crashing during unpredictable AI generation.
+     * Virtual Environments (`venv`) to keep project dependencies isolated from your operating system.
+
+-----------------------------------------------------------
+PHASE 2: FRONTEND MASTERY (Building the Interactive Canvas)
+-----------------------------------------------------------
+NeuralFlow's interface is highly interactive. Standard HTML/JS isn't enough; you need modern component-based architecture.
+
+5. TypeScript (Bulletproofing JavaScript)
+   - What to learn: Interfaces, custom types, Enums, and Generics.
+   - Why for NeuralFlow: When passing complex "Node" and "Edge" data structures between functions, TypeScript catches errors before the code even runs, saving hours of debugging and preventing catastrophic UI crashes.
+
+6. React.js (Component Architecture)
+   - What to learn: 
+     * Functional Components and Props.
+     * React Hooks: `useState` (local state), `useEffect` (side effects like API calls), `useRef` (accessing DOM elements directly, heavily used for auto-scrolling terminal logs), and `useCallback` (optimizing rendering performance).
+     * Component lifecycles and preventing unnecessary re-renders.
+
+7. Zustand (Global State Management)
+   - What to learn: Creating global state stores.
+   - Why for NeuralFlow: React's default state management is messy for large apps. Zustand (`flowStore.ts`) holds the mathematical coordinates and state of every single node, edge, and execution log on the canvas globally. This allows the sidebar, canvas, and toolbar to all read and update the same data instantly without complex prop-drilling.
+
+8. React Flow (The Visual Engine)
+   - What to learn: Nodes, Edges, Backgrounds, Controls, and the MiniMap.
+   - Why for NeuralFlow: This is the core 3rd-party library that powers the visual drag-and-drop canvas. You must learn how to design "Custom Nodes" (like NeuralFlow's AgentNode with the play button and active status indicators) and "Custom Edges" (the glowing, animated lines connecting nodes).
+
+9. Next.js 14/15 (The Full-Stack Framework)
+   - What to learn: 
+     * The "App Router" architecture.
+     * Client Components (`"use client"`) vs Server Components.
+     * Next.js API Routes (creating backend-like endpoints right inside the frontend for simple tasks).
+
+-----------------------------------------------------------
+PHASE 3: BACKEND ENGINEERING (The High-Performance Server)
+-----------------------------------------------------------
+The backend handles heavy AI processing. It needs to be fast, asynchronous, and robust.
+
+10. FastAPI (Modern Python Web Framework)
+    - What to learn: 
+      * Routing and Endpoints (`@app.get`, `@app.post`).
+      * Pydantic Models: Used to strictly define what JSON data the frontend must send (e.g., forcing a strictly formatted `NodeExecutionRequest`).
+      * CORS (Cross-Origin Resource Sharing) middleware to securely allow the frontend domain to talk to the backend domain.
+
+11. Advanced Asynchronous Python (`asyncio`)
+    - What to learn: The event loop, `async def`, `await`, and `asyncio.sleep`.
+    - Why for NeuralFlow: If a local AI model takes 10 seconds to generate a response, a synchronous server would freeze entirely for those 10 seconds. `asyncio` allows the server to juggle other requests (like UI telemetry pings) seamlessly while waiting for the heavy AI calculation to finish in the background.
+
+12. System & OS Interfacing (`psutil`)
+    - What to learn: Querying CPU usage, RAM allocation, and thread counts.
+    - Why for NeuralFlow: This specific library powers the live "Hardware Telemetry" panel in the UI, proving that the execution is local and visually showing resource drain.
+
+-----------------------------------------------------------
+PHASE 4: REAL-TIME COMMUNICATION (The Nervous System)
+-----------------------------------------------------------
+Standard HTTP APIs are request/response (you ask, it answers). NeuralFlow requires a live, continuous, unbroken stream of data.
+
+13. WebSockets (Bidirectional Streaming)
+    - What to learn: 
+      * Frontend: The native JavaScript `WebSocket` API (connecting, sending messages, listening to the `onmessage` event).
+      * Backend: FastAPI `WebSocket` endpoints and active connection managers.
+    - Why for NeuralFlow: When an AI node is executing, it uses WebSockets to push live log data back to the React frontend instantly, character-by-character. This is what powers the real-time terminal window effect instead of waiting for the entire process to finish before showing anything.
+
+-----------------------------------------------------------
+PHASE 5: AI INTEGRATION & SECURITY (The "Brain" & The "Shield")
+-----------------------------------------------------------
+This is what makes the application intelligent—and prevents it from destroying your computer.
+
+14. Local LLM Interfacing (Ollama)
+    - What to learn: 
+      * The Ollama REST API documentation.
+      * Prompt Engineering: Writing unbreakable system prompts to force the AI to return exactly what you want (e.g., mathematically forcing it to return raw Python code without any markdown formatting or pleasantries).
+      * Streaming Responses: Handling chunked HTTP responses so the UI updates smoothly as the AI "types" out its thoughts.
+
+15. Abstract Syntax Trees (AST) & Code Sandboxing (CRITICAL)
+    - What to learn: Python's built-in `ast` module.
+    - Why for NeuralFlow: The AI dynamically generates Python code, and NeuralFlow executes it directly on your machine. If the AI hallucinates a command to format your hard drive or delete system files (`os.system("rm -rf /")`), it would be disastrous. You must learn how to parse the AI's text into an AST structure and explicitly block dangerous imports (`os`, `sys`, `subprocess`) before the execution engine is ever allowed to run it.
+    - What to learn: The `exec()` function in Python, combined with strictly restricted global and local variable namespaces to create a secure "Sandbox".
+
+-----------------------------------------------------------
+HOW TO EXECUTE THIS ROADMAP
+-----------------------------------------------------------
+Do not jump around. Software development compounds.
+
+- STEP 1 (Weeks 1-4): Build a basic responsive website using HTML/CSS/JS. Build a basic Python script that reads and writes text files.
+- STEP 2 (Weeks 5-8): Build a standard React App. Learn to fetch data from an open API. Integrate Zustand.
+- STEP 3 (Weeks 9-12): Build a Next.js frontend featuring a basic drag-and-drop React Flow canvas.
+- STEP 4 (Weeks 13-16): Build a FastAPI backend. Connect it to your Next.js app. Make the frontend send a request and the backend send a response.
+- STEP 5 (Weeks 17-20): Implement WebSockets. Connect FastAPI to the local Ollama instance. Build the AST sandbox. Tie everything together into the final NeuralFlow architecture.

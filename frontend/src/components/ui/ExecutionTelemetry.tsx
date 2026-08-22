@@ -1,6 +1,6 @@
 "use client";
-import React, { useEffect, useRef } from 'react';
-import { Terminal, CheckCircle, AlertTriangle, History } from 'lucide-react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { Terminal, CheckCircle, AlertTriangle, History, ThumbsUp, ThumbsDown, X } from 'lucide-react';
 import { useWorkflowStore } from '../../store/workflowStore';
 
 export function ExecutionTelemetry() {
@@ -11,14 +11,49 @@ export function ExecutionTelemetry() {
     totalNodes,
     setIsExecuting,
     runHistory,
-    reset
+    reset,
+    feedbackPrompt,
+    submitFeedback,
+    dismissFeedback,
   } = useWorkflowStore();
 
   const logsEndRef = useRef<HTMLDivElement>(null);
+  const [passiveDismissed, setPassiveDismissed] = useState(false);
+  const passiveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs]);
+
+  // Auto-dismiss passive feedback prompt after 15 seconds
+  useEffect(() => {
+    if (feedbackPrompt && feedbackPrompt.resilience_events.length === 0) {
+      passiveTimerRef.current = setTimeout(() => {
+        setPassiveDismissed(true);
+        dismissFeedback();
+      }, 15000);
+    }
+    return () => {
+      if (passiveTimerRef.current) clearTimeout(passiveTimerRef.current);
+    };
+  }, [feedbackPrompt, dismissFeedback]);
+
+  // Reset passive dismissed state when feedbackPrompt changes
+  useEffect(() => {
+    // eslint-disable-next-line
+    if (feedbackPrompt) setPassiveDismissed(false);
+  }, [feedbackPrompt]);
+
+  const handleThumbsFeedback = useCallback((isPositive: boolean) => {
+    submitFeedback(
+      isPositive ? 5 : 2,
+      'output_quality'
+    );
+  }, [submitFeedback]);
+
+  const handleCategoryFeedback = useCallback((category: 'recovery_worked' | 'output_quality', rating: number) => {
+    submitFeedback(rating, category);
+  }, [submitFeedback]);
 
   // Try to parse structured stats from logs for success view
   const stats = { emails: 0, generated: 0, time: 0 };
@@ -33,6 +68,21 @@ export function ExecutionTelemetry() {
   };
 
   const progressPercentage = totalNodes > 0 ? Math.min(100, Math.round((completedNodes / totalNodes) * 100)) : 0;
+
+  // Describe which interventions occurred for the assertive prompt
+  const interventionLabel = feedbackPrompt?.resilience_events
+    ?.map(e => {
+      switch (e.event_type) {
+        case 'context_pruned': return 'Pruned Context';
+        case 'model_auto_pulled': return 'Auto-Pulled Model';
+        case 'vram_serialized': return 'Serialized VRAM';
+        case 'ram_guardrail_paused': return 'RAM Guardrail';
+        case 'resumed_from_cache': return 'Resumed from Cache';
+        default: return e.event_type;
+      }
+    })
+    .filter((v, i, a) => a.indexOf(v) === i) // dedupe
+    .join(', ');
 
   if (!useWorkflowStore.getState().isExecuting && executionStatus !== 'completed' && executionStatus !== 'failed') {
     return (
@@ -128,6 +178,166 @@ export function ExecutionTelemetry() {
         )}
       </div>
 
+      {/* ── HITL Recovery Prompt ────────────────────────────────────────── */}
+      {useWorkflowStore.getState().recoveryPrompt && (
+        (() => {
+          const prompt = useWorkflowStore.getState().recoveryPrompt!;
+          const isHardware = prompt.violation?.module_name === 'hardware';
+          const isConfidence = prompt.violation?.module_name === 'confidence';
+          const isSandbox = !isHardware && !isConfidence;
+          
+          let title = "⚠️ Execution Paused: Sandbox Violation";
+          let color = "var(--nf-accent-red)";
+          let bg = "var(--nf-accent-red)";
+          
+          if (isHardware) {
+            title = "⚠️ Hardware Deadlock Detected";
+            color = "var(--nf-accent-yellow)";
+            bg = "var(--nf-accent-yellow)";
+          } else if (isConfidence) {
+            title = "⚠️ Low Confidence Output";
+            color = "var(--nf-accent-purple)";
+            bg = "var(--nf-accent-purple)";
+          }
+          
+          return (
+            <div 
+              className="mb-4 p-4 rounded-xl border shrink-0"
+              style={{ borderColor: `${color}80`, backgroundColor: `${bg}15` }}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <p className="text-xs font-bold mb-1" style={{ color: color }}>
+                    {title}
+                  </p>
+                  <p className="text-[10px] text-[var(--nf-text-primary)] mb-1">
+                    Node: {prompt.node_id}
+                  </p>
+                  <p className="text-[10px] text-[var(--nf-text-secondary)] font-mono p-2 bg-black/30 rounded border border-white/10">
+                    {prompt.reason}
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-3">
+                <button
+                  onClick={() => useWorkflowStore.getState().submitRecovery('skip')}
+                  className="px-3 py-1.5 text-[10px] font-semibold rounded-lg bg-[var(--nf-bg-surface)] text-[var(--nf-text-primary)] border border-[var(--nf-border)] hover:bg-[var(--nf-bg-surface-hover)] transition-colors"
+                >
+                  {isConfidence ? "⏭️ Keep Output (Skip Review)" : "⏭️ Skip Node"}
+                </button>
+                
+                {isSandbox && (
+                  <button
+                    onClick={() => {
+                      const newCode = window.prompt("Enter edited code:", "");
+                      if (newCode !== null) useWorkflowStore.getState().submitRecovery('edit', undefined, newCode);
+                    }}
+                    className="px-3 py-1.5 text-[10px] font-semibold rounded-lg bg-[var(--nf-accent-yellow)]/15 text-[var(--nf-accent-yellow)] border border-[var(--nf-accent-yellow)]/30 hover:bg-[var(--nf-accent-yellow)]/25 transition-colors"
+                  >
+                    ✏️ Edit Code & Resume
+                  </button>
+                )}
+                
+                {isHardware && (
+                  <button
+                    onClick={() => useWorkflowStore.getState().submitRecovery('retry')}
+                    className="px-3 py-1.5 text-[10px] font-semibold rounded-lg bg-[var(--nf-accent-cyan)]/15 text-[var(--nf-accent-cyan)] border border-[var(--nf-accent-cyan)]/30 hover:bg-[var(--nf-accent-cyan)]/25 transition-colors"
+                  >
+                    📉 Downgrade Model & Retry
+                  </button>
+                )}
+                
+                {isConfidence && (
+                  <button
+                    onClick={() => {
+                      const newOutput = window.prompt("Enter edited output:", prompt.original_output || "");
+                      if (newOutput !== null) useWorkflowStore.getState().submitRecovery('edit', newOutput);
+                    }}
+                    className="px-3 py-1.5 text-[10px] font-semibold rounded-lg bg-[var(--nf-accent-purple)]/15 text-[var(--nf-accent-purple)] border border-[var(--nf-accent-purple)]/30 hover:bg-[var(--nf-accent-purple)]/25 transition-colors"
+                  >
+                    ✏️ Edit Output & Resume
+                  </button>
+                )}
+                
+                {(!isHardware && !isConfidence) && (
+                  <button
+                    onClick={() => useWorkflowStore.getState().submitRecovery('retry')}
+                    className="px-3 py-1.5 text-[10px] font-semibold rounded-lg bg-[var(--nf-accent-cyan)]/15 text-[var(--nf-accent-cyan)] border border-[var(--nf-accent-cyan)]/30 hover:bg-[var(--nf-accent-cyan)]/25 transition-colors"
+                  >
+                    🔄 Fail & Retry Workflow
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })()
+      )}
+
+      {/* ── Resilience Feedback Prompt ──────────────────────────────────── */}
+      {feedbackPrompt && !passiveDismissed && (
+        <div className={`mb-4 p-4 rounded-xl border transition-all duration-300 shrink-0 ${
+          feedbackPrompt.resilience_events.length > 0
+            ? 'bg-[var(--nf-accent-yellow)]/10 border-[var(--nf-accent-yellow)]/30'
+            : 'bg-[var(--nf-bg-surface)] border-[var(--nf-border)]'
+        }`}>
+          {feedbackPrompt.resilience_events.length > 0 ? (
+            /* ── Assertive Prompt: Interventions occurred ── */
+            <div>
+              <div className="flex items-start justify-between mb-3">
+                <p className="text-xs font-semibold text-[var(--nf-text-primary)]">
+                  ⚡ NeuralFlow adjusted resources mid-run ({interventionLabel}). How is the output quality?
+                </p>
+                <button onClick={dismissFeedback} className="text-[var(--nf-text-muted)] hover:text-[var(--nf-text-primary)] ml-2 shrink-0">
+                  <X size={14} />
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => handleCategoryFeedback('recovery_worked', 5)}
+                  className="px-3 py-1.5 text-[10px] font-semibold rounded-lg bg-[var(--nf-accent-emerald)]/15 text-[var(--nf-accent-emerald)] border border-[var(--nf-accent-emerald)]/30 hover:bg-[var(--nf-accent-emerald)]/25 transition-colors"
+                >
+                  ✅ Recovery Worked
+                </button>
+                <button
+                  onClick={() => handleCategoryFeedback('output_quality', 3)}
+                  className="px-3 py-1.5 text-[10px] font-semibold rounded-lg bg-[var(--nf-accent-yellow)]/15 text-[var(--nf-accent-yellow)] border border-[var(--nf-accent-yellow)]/30 hover:bg-[var(--nf-accent-yellow)]/25 transition-colors"
+                >
+                  ⚠️ Lost Some Details
+                </button>
+                <button
+                  onClick={() => handleCategoryFeedback('output_quality', 1)}
+                  className="px-3 py-1.5 text-[10px] font-semibold rounded-lg bg-[var(--nf-accent-red)]/15 text-[var(--nf-accent-red)] border border-[var(--nf-accent-red)]/30 hover:bg-[var(--nf-accent-red)]/25 transition-colors"
+                >
+                  ❌ Missed the Point
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* ── Passive Prompt: No interventions — auto-dismisses in 15s ── */
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-[var(--nf-text-secondary)]">How was the output?</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleThumbsFeedback(true)}
+                  className="p-1.5 rounded-lg bg-[var(--nf-accent-emerald)]/10 text-[var(--nf-accent-emerald)] hover:bg-[var(--nf-accent-emerald)]/20 transition-colors"
+                >
+                  <ThumbsUp size={14} />
+                </button>
+                <button
+                  onClick={() => handleThumbsFeedback(false)}
+                  className="p-1.5 rounded-lg bg-[var(--nf-accent-red)]/10 text-[var(--nf-accent-red)] hover:bg-[var(--nf-accent-red)]/20 transition-colors"
+                >
+                  <ThumbsDown size={14} />
+                </button>
+                <button onClick={dismissFeedback} className="p-1.5 text-[var(--nf-text-muted)] hover:text-[var(--nf-text-primary)]">
+                  <X size={14} />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="flex-1 bg-[var(--nf-bg-terminal)] border border-[var(--nf-border)] rounded-xl p-4 font-mono text-[10px] overflow-y-auto shadow-inner shadow-black/50 scrollbar-thin scrollbar-thumb-white/10">
         {logs.map((log, i) => (
           <div key={i} className={`mb-2 ${log.includes('Hardware optimization') ? 'text-[var(--nf-accent-yellow)]' : log.includes('❌') || log.includes('FAILED') || log.includes('ERROR') ? 'text-[var(--nf-accent-red)]' : log.includes('✓') || log.includes('SUCCESS') ? 'text-[var(--nf-accent-emerald)]' : 'text-[var(--nf-text-primary)]'}`}>
@@ -139,3 +349,4 @@ export function ExecutionTelemetry() {
     </div>
   );
 }
+

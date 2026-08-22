@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { FeedbackPrompt, RecoveryRequiredPrompt, RecoveryAction } from '@/types/dag';
 
 export interface AiTask {
   role: string;
@@ -125,6 +126,18 @@ interface WorkflowState {
   // Run History
   runHistory: RunHistoryEntry[];
   addRunHistoryEntry: (entry: Omit<RunHistoryEntry, 'id' | 'timestamp'>) => void;
+
+  // Resilience Feedback
+  feedbackPrompt: FeedbackPrompt | null;
+  setFeedbackPrompt: (prompt: FeedbackPrompt | null) => void;
+  submitFeedback: (rating: number, category: 'recovery_worked' | 'output_quality', comment?: string) => Promise<void>;
+  dismissFeedback: () => void;
+  
+  // HITL Recovery
+  recoveryPrompt: RecoveryRequiredPrompt | null;
+  setRecoveryPrompt: (prompt: RecoveryRequiredPrompt | null) => void;
+  submitRecovery: (action: RecoveryAction, editedOutput?: string, editedCode?: string) => Promise<void>;
+  dismissRecovery: () => void;
 
   reset: () => void;
 }
@@ -335,6 +348,57 @@ export const useWorkflowStore = create<WorkflowState>()(
         if (newHistory.length > 10) newHistory.pop(); // Keep last 10
         return { runHistory: newHistory };
       }),
+
+      // ─── Resilience Feedback ─────────────────────────────
+      feedbackPrompt: null,
+      setFeedbackPrompt: (prompt) => set({ feedbackPrompt: prompt }),
+      submitFeedback: async (rating, category, comment) => {
+        const prompt = get().feedbackPrompt;
+        if (!prompt) return;
+        try {
+          await fetch('http://localhost:8000/api/feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              workflow_id: prompt.workflow_id,
+              rating,
+              category,
+              resilience_events: prompt.resilience_events,
+              comment: comment || null,
+            }),
+          });
+        } catch (e) {
+          console.warn('Failed to submit feedback', e);
+        }
+        set({ feedbackPrompt: null });
+      },
+      dismissFeedback: () => set({ feedbackPrompt: null }),
+
+      // ─── HITL Recovery ─────────────────────────────
+      recoveryPrompt: null,
+      setRecoveryPrompt: (prompt) => set({ recoveryPrompt: prompt }),
+      submitRecovery: async (action, editedOutput, editedCode) => {
+        const prompt = get().recoveryPrompt;
+        if (!prompt) return;
+        try {
+          await fetch('http://localhost:8000/api/recovery/resolve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              workflow_id: prompt.workflow_id,
+              node_id: prompt.node_id,
+              action,
+              edited_output: editedOutput || null,
+              edited_code: editedCode || null,
+            }),
+          });
+        } catch (e) {
+          console.warn('Failed to submit recovery', e);
+        }
+        set({ recoveryPrompt: null });
+      },
+      dismissRecovery: () => set({ recoveryPrompt: null }),
+
       reset: () => set({
         automationId: null,
         automationName: '',

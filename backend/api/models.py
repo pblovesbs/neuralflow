@@ -213,3 +213,84 @@ class OllamaModel(BaseModel):
     name: str
     size: Optional[str] = None
     modified_at: Optional[str] = None
+
+
+# ─── Resilience & Feedback Models ──────────────────────────────────────────────
+
+
+class ResilienceEventType(str, Enum):
+    """Types of silent resilience interventions the engine can perform."""
+
+    VRAM_SERIALIZED = "vram_serialized"
+    RAM_GUARDRAIL_PAUSED = "ram_guardrail_paused"
+    MODEL_AUTO_PULLED = "model_auto_pulled"
+    RESUMED_FROM_CACHE = "resumed_from_cache"
+    CONTEXT_PRUNED = "context_pruned"
+
+
+class ResilienceEvent(BaseModel):
+    """A single resilience intervention that occurred during workflow execution."""
+
+    event_type: ResilienceEventType
+    node_id: str
+    message: str
+    timestamp: str
+
+
+class FeedbackCategory(str, Enum):
+    """Categories for structured user feedback on resilience interventions."""
+
+    RECOVERY_WORKED = "recovery_worked"
+    OUTPUT_QUALITY = "output_quality"
+
+
+class WorkflowFeedback(BaseModel):
+    """Structured user feedback submitted after a workflow completes."""
+
+    workflow_id: str = Field(..., description="The workflow this feedback is for.")
+    rating: int = Field(..., ge=1, le=5, description="1-5 rating of output quality.")
+    category: FeedbackCategory = Field(..., description="Feedback category.")
+    resilience_events: list[ResilienceEvent] = Field(
+        default_factory=list,
+        description="Resilience events that occurred during this run.",
+    )
+    comment: Optional[str] = Field(None, description="Optional free-text comment.")
+
+class RecoveryAction(str, Enum):
+    RETRY = "retry"
+    EDIT = "edit"
+    SKIP = "skip"
+    WHITELIST = "whitelist"
+    REWRITE = "rewrite"
+    FLAG = "flag"
+    FORCE_FREE = "force_free"
+    FALLBACK = "fallback"
+
+class NodeRecoveryRequest(BaseModel):
+    workflow_id: str
+    node_id: str
+    action: RecoveryAction
+    edited_output: Optional[str] = None
+    edited_code: Optional[str] = None
+
+class SandboxViolation(BaseModel):
+    module_name: str
+    message: str
+
+class ActionType(str, Enum):
+    API_CALL = "api_call"
+    INPUT_FORM = "input_form"
+    REDIRECT = "redirect"
+
+class ActionableErrorPayload(BaseModel):
+    error_code: str
+    title: str
+    message: str
+    action_label: str
+    action_type: ActionType = ActionType.API_CALL
+    action_endpoint: Optional[str] = None
+    action_payload: Optional[dict] = None
+    manual_command: Optional[str] = None
+    resumable: bool = True
+    node_id: Optional[str] = None
+    workflow_id: Optional[str] = None

@@ -52,8 +52,10 @@ export default function TriggerNode({ id, data, selected }: NodeProps) {
         setPendingPath(data.path);
         setTypedPath(data.path);
         setShowPermission(true);
+      } else {
+        alert("Failed to open native file picker. Ensure the backend is running in your local terminal and not a restricted background process.");
       }
-    } catch {
+    } catch (error) {
       // File picker not available — user types manually
     }
   }, []);

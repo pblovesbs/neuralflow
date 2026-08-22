@@ -1,4 +1,5 @@
 import logging
+import time
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -23,6 +24,35 @@ def get_logger(name: str) -> logging.Logger:
 
 
 logger = get_logger("neuralflow.telemetry")
+
+# ── VRAM Telemetry Cache ─────────────────────────────────────────────────────
+# Avoids making 2 HTTP requests to Ollama (/api/ps) on every single log line.
+# Values are refreshed at most once every 5 seconds.
+_vram_cache: dict[str, int | float | None] = {
+    "free_ram": None,
+    "allocated_vram": None,
+    "last_fetched": 0.0,
+}
+_VRAM_CACHE_TTL = 5.0  # seconds
+
+
+async def _get_cached_vram() -> tuple[int | None, int | None]:
+    """Return (free_ram, allocated_vram) with a 5-second TTL cache."""
+    now = time.monotonic()
+    if now - _vram_cache["last_fetched"] < _VRAM_CACHE_TTL:
+        return _vram_cache["free_ram"], _vram_cache["allocated_vram"]
+
+    try:
+        from core.hardware import get_available_vram_bytes, get_active_ollama_vram_usage
+
+        free_ram = await get_available_vram_bytes()
+        allocated_vram = await get_active_ollama_vram_usage()
+        _vram_cache["free_ram"] = free_ram
+        _vram_cache["allocated_vram"] = allocated_vram
+        _vram_cache["last_fetched"] = now
+        return free_ram, allocated_vram
+    except Exception:
+        return None, None
 
 
 def get_timestamp() -> str:
@@ -52,16 +82,8 @@ async def broadcast_log(
     else:
         logger.info(f"[{node_id}] {message}")
 
-    # Attempt to fetch telemetry safely
-    free_ram = None
-    allocated_vram = None
-    try:
-        from core.hardware import get_available_vram_bytes, get_active_ollama_vram_usage
-
-        free_ram = await get_available_vram_bytes()
-        allocated_vram = await get_active_ollama_vram_usage()
-    except ImportError:
-        pass
+    # Fetch telemetry with TTL cache (avoids hammering Ollama /api/ps)
+    free_ram, allocated_vram = await _get_cached_vram()
 
     entry = LogEntry(
         timestamp=get_timestamp(),

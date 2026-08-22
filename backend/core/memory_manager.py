@@ -112,7 +112,7 @@ async def ingest(
                 ids=ids,
                 embeddings=embeddings,
                 documents=chunks,
-                metadatas=[{"source": "neuralflow"} for _ in chunks],
+                metadatas=[{"source": "neuralflow", "flagged": False} for _ in chunks],
             ),
         )
 
@@ -166,15 +166,63 @@ async def query(prompt: str, collection_name: str = "default", top_k: int = 3) -
 
         documents = results.get("documents", [[]])[0]
         distances = results.get("distances", [[]])[0]
+        metadatas = results.get("metadatas", [[]])[0]
 
-        matches = [
-            {"text": doc, "distance": dist} for doc, dist in zip(documents, distances)
-        ]
+        matches = []
+        positive_docs = []
+        negative_docs = []
+        
+        for doc, dist, meta in zip(documents, distances, metadatas):
+            is_flagged = meta.get("flagged", False)
+            matches.append({"text": doc, "distance": dist, "flagged": is_flagged})
+            if is_flagged:
+                negative_docs.append(doc)
+            else:
+                positive_docs.append(doc)
 
         return {
             "status": "success",
             "results": matches,
-            "context_string": "\n\n---\n\n".join(documents),
+            "context_string": "\n\n---\n\n".join(positive_docs),
+            "negative_context_string": "\n\n---\n\n".join(negative_docs)
         }
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+async def flag_memory(text: str, collection_name: str = "default") -> dict:
+    """Flag a specific memory chunk as a known failure (Anti-Memory)."""
+    if not _CHROMA_AVAILABLE:
+        return {"status": "error", "error": "ChromaDB not installed"}
+    
+    client = get_client()
+    try:
+        collection = client.get_collection(name=collection_name)
+        # We need to find the ID of the document matching the text closely
+        query_embeddings = await _generate_embeddings([text])
+        import asyncio
+        loop = asyncio.get_event_loop()
+        results = await loop.run_in_executor(
+            None,
+            lambda: collection.query(
+                query_embeddings=query_embeddings, n_results=1
+            ),
+        )
+        
+        ids = results.get("ids", [[]])[0]
+        metadatas = results.get("metadatas", [[]])[0]
+        if ids:
+            doc_id = ids[0]
+            meta = metadatas[0] if metadatas else {"source": "neuralflow"}
+            meta["flagged"] = True
+            
+            await loop.run_in_executor(
+                None,
+                lambda: collection.update(
+                    ids=[doc_id],
+                    metadatas=[meta]
+                )
+            )
+            return {"status": "success", "message": "Memory flagged successfully."}
+        return {"status": "error", "error": "Could not find matching memory to flag."}
     except Exception as e:
         return {"status": "error", "error": str(e)}

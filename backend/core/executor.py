@@ -12,7 +12,7 @@ import aiofiles
 from datetime import datetime, timezone
 from typing import Optional
 
-from api.models import DagNode, NodeType
+from api.models import DagNode, NodeType, ResilienceEventType
 from core.config import settings
 from core.telemetry import broadcast_log
 from core.ollama_client.client import (
@@ -21,6 +21,14 @@ from core.ollama_client.client import (
     ModelNotFoundError,
 )
 from core.file_parser import parse_file
+from core.resilience_tracker import track
+
+class LowConfidenceError(Exception):
+    def __init__(self, message: str, original_output: str):
+        self.message = message
+        self.original_output = original_output
+        super().__init__(self.message)
+
 
 
 class ExecutionError(Exception):
@@ -162,9 +170,12 @@ async def execute_agent_node(
             )
             if bypass_ram_check:
                 await broadcast_log(ws_manager, node.id, msg + " [Bypassed by User]", "WARN")
+                track(ResilienceEventType.RAM_GUARDRAIL_PAUSED, node.id, f"RAM guardrail bypassed ({available_gb:.1f}GB free)")
             else:
                 await broadcast_log(ws_manager, node.id, msg, "WARN")
-                return f"[Paused: {msg}]"
+                await broadcast_log(ws_manager, node.id, "⏭️ Node SKIPPED due to insufficient RAM. Downstream nodes will receive an empty context.", "WARN")
+                track(ResilienceEventType.RAM_GUARDRAIL_PAUSED, node.id, f"RAM guardrail skipped execution ({available_gb:.1f}GB free)")
+                return "[SKIPPED: Insufficient RAM — node was not executed]"
     except ImportError:
         pass  # psutil not installed — skip check
 
@@ -181,6 +192,7 @@ async def execute_agent_node(
     if len(input_context) > settings.max_context_chars:
         from core.context_pruner import prune_context
 
+        original_len = len(input_context)
         await broadcast_log(
             ws_manager,
             node.id,
@@ -190,6 +202,8 @@ async def execute_agent_node(
         input_context = await prune_context(
             input_context, query=template, max_chars=settings.max_context_chars
         )
+        pruned_chars = original_len - len(input_context)
+        track(ResilienceEventType.CONTEXT_PRUNED, node.id, f"Pruned {pruned_chars:,} chars (from {original_len:,} to {len(input_context):,})")
 
     # ── Prompt Construction ───────────────────────────────────────────────────
     if "{{input}}" in template:
@@ -266,6 +280,7 @@ async def execute_agent_node(
                 f"⚠️ Model '{model}' not found. Pulling it automatically... This might take a few minutes.",
                 "WARN"
             )
+            track(ResilienceEventType.MODEL_AUTO_PULLED, node.id, f"Auto-pulling missing model '{model}'")
             try:
                 last_status = ""
                 async for status in ollama.pull_model(model):
@@ -306,6 +321,21 @@ async def execute_agent_node(
                 return f"[Error: Failed to pull model: {pull_err}]"
 
         full_response = "".join(chunks)
+        
+        # ── Confidence Scoring (Probabilistic Resilience) ──
+        import re
+        uncertainty_markers = [
+            r"i('m| am) not sure", r"i don('|)t know", r"it('s| is) (unclear|ambiguous)",
+            r"cannot (determine|find|answer)", r"i lack (the )?context", r"as an ai",
+            r"does not provide", r"insufficient information"
+        ]
+        is_uncertain = any(re.search(pattern, full_response, re.IGNORECASE) for pattern in uncertainty_markers)
+        is_suspiciously_short = len(full_response.strip()) < 20
+        
+        if is_uncertain or is_suspiciously_short:
+            reason = "uncertainty detected" if is_uncertain else "suspiciously short output"
+            raise LowConfidenceError(f"Low confidence ({reason})", full_response)
+        
         await broadcast_log(
             ws_manager,
             node.id,
@@ -315,14 +345,9 @@ async def execute_agent_node(
         return full_response
 
     except OllamaConnectionError as e:
-        await broadcast_log(
-            ws_manager,
-            node.id,
-            f"✗ {str(e)}",
-            "ERROR",
-            raw_traceback=traceback.format_exc(),
-        )
-        return f"[Error: Ollama not reachable — {str(e)}]"
+        raise e
+    except LowConfidenceError:
+        raise  # Let the HITL recovery loop in execute.py catch this
     except ModelNotFoundError as e:
         await broadcast_log(
             ws_manager,
@@ -367,6 +392,10 @@ async def execute_action_node(
     """
     target_path = node.data.target_path or ""
 
+    import os
+    if target_path and not os.path.isabs(target_path):
+        target_path = os.path.join(os.path.expanduser("~/Desktop"), target_path)
+
     await broadcast_log(
         ws_manager,
         node.id,
@@ -382,9 +411,16 @@ async def execute_action_node(
         )
         return input_context
 
-    try:
-        import os
+    # Warn if upstream node returned an error string instead of real content
+    if input_context.startswith("[Error:") or input_context.startswith("[SKIPPED:") or input_context.startswith("[Paused:"):
+        await broadcast_log(
+            ws_manager,
+            node.id,
+            f"⚠️ Upstream node produced a non-content result: {input_context[:80]}... Writing it to file anyway for audit trail.",
+            "WARN",
+        )
 
+    try:
         base, ext = os.path.splitext(target_path)
         fmt = getattr(node.data, "output_format", "Plain Text")
 
@@ -583,6 +619,9 @@ async def execute_subprocess_action_node(
             ws_manager, node.id, "✓ Script completed successfully", "SUCCESS"
         )
         return result["stdout"]
+    elif result.get("status") == "sandbox_violation":
+        from core.safe_executor import SandboxViolationError
+        raise SandboxViolationError(result.get("module_name", "unknown"), result["stderr"])
     else:
         err = result["stderr"] or result["stdout"] or "Unknown error"
         await broadcast_log(
@@ -643,6 +682,9 @@ async def execute_memory_query_node(
 
         mode = node.data.memory_inject_mode or "prepend"
         mem_str = "[Retrieved Memory context:]\n" + result["context_string"] + "\n\n"
+        
+        if result.get("negative_context_string"):
+            mem_str += "[IMPORTANT - PREVIOUS FAILURES TO AVOID:]\n" + result["negative_context_string"] + "\n\n"
 
         if mode == "prepend":
             return mem_str + input_context

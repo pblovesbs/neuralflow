@@ -17,6 +17,11 @@ export const metadata: Metadata = {
   keywords: ["AI", "workflow", "automation", "Ollama", "local AI", "no-code"],
 };
 
+import ActionableErrorModal from "@/components/ui/ActionableErrorModal";
+import RecoveryModal from "@/components/ui/RecoveryModal";
+import FeedbackModal from "@/components/ui/FeedbackModal";
+import GlobalToast from "@/components/ui/GlobalToast";
+import FetchInterceptor from "@/components/FetchInterceptor";
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -29,8 +34,13 @@ export default function RootLayout({
         style={{ fontFamily: "var(--font-sans)", background: "var(--nf-bg-primary)", color: "var(--nf-text-primary)" }}
         suppressHydrationWarning
       >
+        <FetchInterceptor />
         <ThemeInitializer />
         {children}
+        <ActionableErrorModal />
+        <RecoveryModal />
+        <FeedbackModal />
+        <GlobalToast />
       </body>
     </html>
   );

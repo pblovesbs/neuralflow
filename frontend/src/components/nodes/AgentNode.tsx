@@ -190,6 +190,7 @@ export default function AgentNode({ id, data, selected }: NodeProps) {
         glowRaw="rgba(34,211,238,0.3)"
         gradientVar="--nf-gradient-node-agent"
         icon={<span>🧠</span>}
+        tainted={data.tainted as boolean}
         label={
           <div className="flex justify-between items-center w-full">
             <span>AI Processing</span>
